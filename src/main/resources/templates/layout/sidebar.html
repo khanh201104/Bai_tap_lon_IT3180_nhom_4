@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="sidebar" class="sidebar">
+    <div class="logo">Bluemoon</div>
+
+    <nav>
+        <a th:href="@{/}">Dashboard</a>
+        <a th:href="@{/residents}">Quản lý nhân khẩu</a>
+        <a th:href="@{/households}">Quản lý hộ khẩu</a>
+        <a th:href="@{/temporary}">Tạm trú / Tạm vắng</a>
+        <a th:href="@{/fees}">Quản lý khoản phí</a>
+        <a th:href="@{/vehicles}">Quản lý phương tiện</a>
+        <a th:href="@{/reports}">Thống kê</a>
+    </nav>
+</aside>
+</body>
+</html>

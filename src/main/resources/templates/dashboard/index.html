@@ -1,11 +1,46 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Bluemoon Apartment Management</title>
+    <title>Bluemoon Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Hệ thống quản lý chung cư Bluemoon</h1>
-<p>Test.</p>
+
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="content">
+        <h1>Dashboard</h1>
+        <p>Hệ thống quản lý chung cư Bluemoon</p>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Tổng số hộ</h3>
+                <p>0</p>
+            </div>
+
+            <div class="card">
+                <h3>Tổng nhân khẩu</h3>
+                <p>0</p>
+            </div>
+
+            <div class="card">
+                <h3>Đã thu</h3>
+                <p>0 VNĐ</p>
+            </div>
+
+            <div class="card">
+                <h3>Chưa thu</h3>
+                <p>0 VNĐ</p>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+
 </body>
 </html>
