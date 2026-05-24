@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật nhân khẩu - Bluemoon</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="content">
+        <h1>Cập nhật thông tin nhân khẩu</h1>
+
+        <form th:action="@{/residents/{id}/update(id=${resident.id})}" th:object="${resident}" method="post" class="form">
+            <div class="form-group">
+                <label>Họ và tên:</label>
+                <input type="text" th:field="*{fullName}" required>
+            </div>
+            <div class="form-group">
+                <label>CCCD/CMND:</label>
+                <input type="text" th:field="*{citizenId}">
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại:</label>
+                <input type="text" th:field="*{phoneNumber}">
+            </div>
+            <div class="form-group">
+                <label>Giới tính:</label>
+                <select th:field="*{gender}">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ngày sinh:</label>
+                <input type="date" th:field="*{dateOfBirth}">
+            </div>
+            <div class="form-group">
+                <label>Trạng thái:</label>
+                <select th:field="*{status}">
+                    <option th:each="s : ${T(com.bluemoon.apartment.constant.ResidentStatus).values()}"
+                            th:value="${s}" th:text="${s}"></option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Cập nhật</button>
+                <a th:href="@{/residents}" class="btn">Hủy</a>
+            </div>
+        </form>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+
+</body>
+</html>

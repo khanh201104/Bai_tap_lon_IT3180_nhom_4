@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách tạm trú/tạm vắng - Bluemoon</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="content">
+        <div class="header-actions">
+            <h1>Quản lý tạm trú / tạm vắng</h1>
+            <a th:href="@{/temporary/create}" class="btn btn-primary">Thêm mới</a>
+        </div>
+
+        <div class="search-box">
+            <form th:action="@{/temporary}" method="get">
+                <input type="text" name="keyword" placeholder="Tìm kiếm theo tên cư dân..." th:value="${param.keyword}">
+                <button type="submit" class="btn">Tìm kiếm</button>
+            </form>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cư dân</th>
+                    <th>Loại</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Lý do</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="temp : ${temporaries}">
+                    <td th:text="${temp.id}"></td>
+                    <td th:text="${temp.resident.fullName}"></td>
+                    <td th:text="${temp.type}"></td>
+                    <td th:text="${temp.startDate}"></td>
+                    <td th:text="${temp.endDate}"></td>
+                    <td th:text="${temp.reason}"></td>
+                    <td>
+                        <a th:href="@{/temporary/{id}(id=${temp.id})}" class="btn-link">Chi tiết</a>
+                        <a th:href="@{/temporary/{id}/edit(id=${temp.id})}" class="btn-link">Sửa</a>
+                        <form th:action="@{/temporary/{id}/delete(id=${temp.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn-link text-danger" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+
+</body>
+</html>
