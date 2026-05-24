@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Ghi đóng phí</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Ghi nhận đóng phí</h1>
+        <form th:action="@{/fee-payments/create}" th:object="${payment}" method="post" style="max-width:480px;">
+            <p><label>Khoản phí:
+                <select th:field="*{feeTypeId}" required style="width:100%;padding:8px;">
+                    <option th:each="f : ${feeTypes}" th:value="${f.id}" th:text="${f.name}"></option>
+                </select>
+            </label></p>
+            <p><label>Mã hộ: <input th:field="*{householdId}" type="number" required style="width:100%;padding:8px;"></label></p>
+            <p><label>Căn hộ: <input th:field="*{apartmentCode}" style="width:100%;padding:8px;"></label></p>
+            <p><label>Người nộp: <input th:field="*{payerName}" style="width:100%;padding:8px;"></label></p>
+            <p><label>Số tiền: <input th:field="*{amount}" type="number" required style="width:100%;padding:8px;"></label></p>
+            <p><label>Ngày nộp: <input th:field="*{paymentDate}" type="date" style="width:100%;padding:8px;"></label></p>
+            <p><label>Trạng thái:
+                <select th:field="*{status}" style="width:100%;padding:8px;">
+                    <option value="UNPAID">Chưa nộp</option>
+                    <option value="PAID">Đã nộp</option>
+                    <option value="PENDING">Chờ xác nhận</option>
+                </select>
+            </label></p>
+            <button class="btn btn-primary" type="submit">Lưu</button>
+            <a class="btn btn-outline" th:href="@{/fee-payments}">Hủy</a>
+        </form>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>

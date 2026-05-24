@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Thống kê</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Thống kê &amp; báo cáo phí</h1>
+        <div class="cards">
+            <div class="card"><h3>Tổng số hộ</h3><p th:text="${stats.totalHouseholds}"></p></div>
+            <div class="card"><h3>Phí sinh hoạt (bản ghi)</h3><p th:text="${stats.totalResidentsEstimate}"></p></div>
+            <div class="card"><h3>Đã thu</h3><p th:text="${#numbers.formatDecimal(stats.totalCollected,0,'COMMA',0,'POINT')} + ' VNĐ'"></p></div>
+            <div class="card"><h3>Chưa thu</h3><p th:text="${#numbers.formatDecimal(stats.totalUncollected,0,'COMMA',0,'POINT')} + ' VNĐ'"></p></div>
+        </div>
+        <h2 style="margin-top:28px;color:#b30000;">Hộ chưa đóng phí</h2>
+        <table class="table">
+            <thead><tr><th>Hộ</th><th>Căn hộ</th><th>Khoản thu</th><th>Còn nợ</th></tr></thead>
+            <tbody>
+            <tr th:each="u : ${stats.unpaidHouseholds}">
+                <td th:text="${u.householdId}"></td>
+                <td th:text="${u.apartmentCode}"></td>
+                <td th:text="${u.feeName}"></td>
+                <td th:text="${#numbers.formatDecimal(u.amountDue,0,'COMMA',0,'POINT')} + ' VNĐ'"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(stats.unpaidHouseholds)}"><td colspan="4">Không có hộ nợ phí.</td></tr>
+            </tbody>
+        </table>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>

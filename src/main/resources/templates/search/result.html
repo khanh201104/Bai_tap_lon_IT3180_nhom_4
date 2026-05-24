@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Tìm kiếm</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Tìm kiếm</h1>
+        <form th:action="@{/search}" method="get" style="display:flex;gap:8px;margin:16px 0;">
+            <input name="q" th:value="${q}" placeholder="Tên phí, căn hộ, biển số, người nộp..." style="flex:1;padding:10px;">
+            <button class="btn btn-primary" type="submit">Tìm</button>
+        </form>
+        <div th:if="${result != null}">
+            <h2>Kết quả cho: <span th:text="${result.query}"></span></h2>
+            <h3>Loại phí</h3>
+            <ul><li th:each="f : ${result.feeTypes}" th:text="${f.name} + ' — ' + ${f.amount}"></li></ul>
+            <h3>Đóng phí</h3>
+            <ul><li th:each="p : ${result.feePayments}" th:text="'Hộ ' + ${p.householdId} + ' — ' + ${p.payerName} + ' — ' + ${p.status}"></li></ul>
+            <h3>Phí sinh hoạt</h3>
+            <ul><li th:each="l : ${result.livingFees}" th:text="${l.name} + ' — căn ' + ${l.apartmentCode}"></li></ul>
+            <h3>Phương tiện</h3>
+            <ul><li th:each="v : ${result.vehicles}" th:text="${v.type} + ' — ' + ${v.plate} + ' — ' + ${v.apartmentCode}"></li></ul>
+        </div>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>

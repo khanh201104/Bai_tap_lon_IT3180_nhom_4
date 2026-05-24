@@ -1144,3 +1144,20 @@ Trước khi bắt đầu code:
 7. Tạo Pull Request để merge vào `main`.
 
 Không tự ý sửa module của người khác nếu chưa thống nhất với team.
+
+---
+
+## 18. Trạng thái module — Thành viên 4 (Bạn Giang)
+
+**Phạm vi:** Khoản phí · Đóng phí · Phí sinh hoạt · Phương tiện · Tìm kiếm · Thống kê.
+
+**Đã triển khai** (Spring MVC + Thymeleaf, không đổi cấu trúc thư mục gốc):
+
+- CRUD loại phí: `/fees`
+- Quản lý đóng phí (trạng thái, ngày nộp): `/fee-payments`
+- Phí sinh hoạt hàng tháng (điện/nước): `/living-fees`
+- CRUD phương tiện + tìm biển số/căn hộ: `/vehicles`
+- Tìm kiếm tổng hợp: `/search`
+- Báo cáo thống kê: `/reports`
+
+Chi tiết file và hướng dẫn: [docs/ThanhVien4-Giang.md](docs/ThanhVien4-Giang.md)
