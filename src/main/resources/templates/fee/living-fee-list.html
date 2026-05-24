@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Phí sinh hoạt</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Phí sinh hoạt hàng tháng</h1>
+        <p th:if="${message}" th:text="${message}" style="color:green;"></p>
+        <a class="btn btn-primary" th:href="@{/living-fees/create}">+ Thêm (điện/nước/dịch vụ)</a>
+        <table class="table">
+            <thead><tr><th>ID</th><th>Tên</th><th>Loại</th><th>Hộ</th><th>Căn hộ</th><th>Tháng</th><th>Số tiền</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${items}">
+                <td th:text="${i.id}"></td>
+                <td th:text="${i.name}"></td>
+                <td th:text="${i.category}"></td>
+                <td th:text="${i.householdId}"></td>
+                <td th:text="${i.apartmentCode}"></td>
+                <td th:text="${i.billingMonth}"></td>
+                <td th:text="${#numbers.formatDecimal(i.amount,0,'COMMA',0,'POINT')}"></td>
+                <td>
+                    <a th:href="@{/living-fees/{id}/edit(id=${i.id})}">Sửa</a>
+                    <form th:action="@{/living-fees/{id}/delete(id=${i.id})}" method="post" style="display:inline;">
+                        <button type="submit">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>

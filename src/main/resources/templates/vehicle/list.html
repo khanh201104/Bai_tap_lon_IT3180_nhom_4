@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Phương tiện</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Quản lý phương tiện</h1>
+        <p th:if="${message}" th:text="${message}" style="color:green;"></p>
+        <div style="margin:16px 0;display:flex;gap:8px;">
+            <a class="btn btn-primary" th:href="@{/vehicles/create}">+ Thêm phương tiện</a>
+            <form th:action="@{/vehicles}" method="get" style="display:flex;gap:8px;">
+                <input name="q" th:value="${q}" placeholder="Biển số / căn hộ" style="padding:8px;">
+                <button class="btn btn-outline" type="submit">Tìm</button>
+            </form>
+        </div>
+        <table class="table">
+            <thead><tr><th>ID</th><th>Hộ</th><th>Căn hộ</th><th>Loại</th><th>Biển số</th><th>Ghi chú</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="v : ${vehicles}">
+                <td th:text="${v.id}"></td>
+                <td th:text="${v.householdId}"></td>
+                <td th:text="${v.apartmentCode}"></td>
+                <td th:text="${v.type}"></td>
+                <td th:text="${v.plate}"></td>
+                <td th:text="${v.note}"></td>
+                <td>
+                    <a th:href="@{/vehicles/{id}/edit(id=${v.id})}">Sửa</a>
+                    <form th:action="@{/vehicles/{id}/delete(id=${v.id})}" method="post" style="display:inline;">
+                        <button type="submit">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>

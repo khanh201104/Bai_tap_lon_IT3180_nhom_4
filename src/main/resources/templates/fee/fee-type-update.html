@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Sửa loại phí</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Sửa loại phí</h1>
+        <form th:action="@{/fees/{id}/edit(id=${fee.id})}" th:object="${fee}" method="post" style="max-width:480px;">
+            <p><label>Tên: <input th:field="*{name}" required style="width:100%;padding:8px;"></label></p>
+            <p><label>Số tiền: <input th:field="*{amount}" type="number" style="width:100%;padding:8px;"></label></p>
+            <p><label>Cách tính: <select th:field="*{chargeType}" style="width:100%;padding:8px;">
+                <option value="per_apartment">Theo căn hộ</option>
+                <option value="per_resident">Theo nhân khẩu</option>
+                <option value="per_vehicle">Gửi xe</option>
+            </select></label></p>
+            <p><label>Tần suất: <select th:field="*{frequency}" style="width:100%;padding:8px;">
+                <option value="one_time">Một lần</option>
+                <option value="monthly">Hàng tháng</option>
+            </select></label></p>
+            <button class="btn btn-primary" type="submit">Cập nhật</button>
+            <a class="btn btn-outline" th:href="@{/fees}">Hủy</a>
+        </form>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>

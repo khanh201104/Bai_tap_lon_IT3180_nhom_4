@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Thêm phí sinh hoạt</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Thêm phí sinh hoạt</h1>
+        <form th:action="@{/living-fees/create}" th:object="${item}" method="post" style="max-width:480px;">
+            <p><label>Tên: <input th:field="*{name}" required style="width:100%;padding:8px;"></label></p>
+            <p><label>Loại:
+                <select th:field="*{category}" style="width:100%;padding:8px;">
+                    <option value="electric">Tiền điện</option>
+                    <option value="water">Tiền nước</option>
+                    <option value="general">Phí khác</option>
+                </select>
+            </label></p>
+            <p><label>Mã hộ: <input th:field="*{householdId}" type="number" required style="width:100%;padding:8px;"></label></p>
+            <p><label>Căn hộ: <input th:field="*{apartmentCode}" style="width:100%;padding:8px;"></label></p>
+            <p><label>Tháng (yyyy-MM): <input th:field="*{billingMonth}" placeholder="2026-03" style="width:100%;padding:8px;"></label></p>
+            <p><label>Số tiền: <input th:field="*{amount}" type="number" required style="width:100%;padding:8px;"></label></p>
+            <button class="btn btn-primary" type="submit">Lưu</button>
+            <a class="btn btn-outline" th:href="@{/living-fees}">Hủy</a>
+        </form>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>

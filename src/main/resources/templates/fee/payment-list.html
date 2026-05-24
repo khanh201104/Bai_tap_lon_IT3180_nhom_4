@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Đóng phí</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <h1>Quản lý đóng phí</h1>
+        <p th:if="${message}" th:text="${message}" style="color:green;"></p>
+        <p>Tổng đã thu: <strong th:text="${#numbers.formatDecimal(totalCollected,0,'COMMA',0,'POINT')} + ' VNĐ'"></strong>
+           | Hộ chưa đóng: <strong th:text="${unpaid.size()}"></strong></p>
+        <a class="btn btn-primary" th:href="@{/fee-payments/create}">+ Ghi nhận đóng phí</a>
+        <table class="table">
+            <thead><tr><th>ID</th><th>Hộ</th><th>Căn hộ</th><th>Người nộp</th><th>Số tiền</th><th>Ngày</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${payments}">
+                <td th:text="${p.id}"></td>
+                <td th:text="${p.householdId}"></td>
+                <td th:text="${p.apartmentCode}"></td>
+                <td th:text="${p.payerName}"></td>
+                <td th:text="${#numbers.formatDecimal(p.amount,0,'COMMA',0,'POINT')}"></td>
+                <td th:text="${p.paymentDate}"></td>
+                <td th:text="${p.status}"></td>
+                <td><a th:href="@{/fee-payments/{id}/edit(id=${p.id})}">Cập nhật</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+</body>
+</html>
