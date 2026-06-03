@@ -1,0 +1,44 @@
+Picked up JAVA_TOOL_OPTIONS: -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.bluemoon:apartment >-----------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.14:run (default-cli) > test-compile @ apartment >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ apartment ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 11 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ apartment ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ apartment ---
+[INFO] skip non existing resourceDirectory C:\Users\ACER\OneDrive - Hanoi University of Science and Technology\Tài liệu\GitHub\Bai_tap_lon_IT3180_nhom_4\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ apartment ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.5.14:run (default-cli) < test-compile @ apartment <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.14:run (default-cli) @ apartment ---
+[INFO] Attaching agents: []
+Picked up JAVA_TOOL_OPTIONS: -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+Error: Could not find or load main class com.bluemoon.apartment.ApartmentApplication
+Caused by: java.lang.ClassNotFoundException: com.bluemoon.apartment.ApartmentApplication
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.279 s
+[INFO] Finished at: 2026-06-03T23:21:06+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.14:run (default-cli) on project apartment: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
