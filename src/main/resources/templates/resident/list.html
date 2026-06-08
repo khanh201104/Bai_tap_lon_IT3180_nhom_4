@@ -50,25 +50,208 @@
                 <td th:text="${resident.fullName}"></td>
                 <td th:text="${resident.citizenId}"></td>
                 <td th:text="${resident.phoneNumber}"></td>
-                <td th:text="${resident.dateOfBirth}"></td>
-                <td th:text="${resident.status}"></td>
+                <td th:text="${resident.dateOfBirth != null ? #temporals.format(resident.dateOfBirth, 'dd/MM/yyyy') : ''}"></td>
+                <td th:text="${resident.status != null ? resident.status.displayName : ''}"></td>
                 <td>
-                    <a th:href="@{/residents/{id}(id=${resident.id})}" class="btn-link">Chi tiết</a>
-                    <a th:href="@{/residents/{id}/edit(id=${resident.id})}" class="btn-link">Sửa</a>
-
-                    <form th:action="@{/residents/{id}/delete(id=${resident.id})}"
-                          method="post"
-                          style="display:inline;">
-                        <button type="submit"
-                                class="btn-link text-danger"
-                                onclick="return confirm('Bạn có chắc muốn xóa?')">
-                            Xóa
+                    <div class="action-buttons">
+                        <button type="button"
+                                class="action-btn action-detail"
+                                th:attr="data-modal-id='resident-detail-modal-' + ${resident.id}"
+                                onclick="openResidentModal(this)">
+                            Chi tiết
                         </button>
-                    </form>
+
+                        <button type="button"
+                                class="action-btn action-edit"
+                                th:attr="data-modal-id='resident-edit-modal-' + ${resident.id}"
+                                onclick="openResidentModal(this)">
+                            Sửa
+                        </button>
+
+                        <form th:action="@{/residents/{id}/delete(id=${resident.id})}"
+                              method="post"
+                              class="action-form"
+                              onsubmit="return confirm('Bạn có chắc muốn xóa nhân khẩu này không?');">
+                            <button type="submit" class="action-btn action-delete">
+                                Xóa
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(residents)}">
+                <td colspan="7" class="empty-row">
+                    Không có dữ liệu nhân khẩu
                 </td>
             </tr>
             </tbody>
         </table>
+
+        <!-- MODAL CHI TIẾT + SỬA NHÂN KHẨU -->
+        <div th:each="resident : ${residents}">
+
+            <!-- MODAL CHI TIẾT -->
+            <div class="modal-overlay resident-modal"
+                 th:id="'resident-detail-modal-' + ${resident.id}">
+                <div class="resident-detail-box">
+                    <button type="button"
+                            class="modal-close"
+                            onclick="closeResidentModal(this)">
+                        ×
+                    </button>
+
+                    <h2>Chi tiết nhân khẩu</h2>
+
+                    <div class="resident-info">
+                        <p>
+                            <span>ID:</span>
+                            <span th:text="${resident.id}"></span>
+                        </p>
+
+                        <p>
+                            <span>Họ và tên:</span>
+                            <span th:text="${resident.fullName}"></span>
+                        </p>
+
+                        <p>
+                            <span>CCCD/CMND:</span>
+                            <span th:text="${resident.citizenId}"></span>
+                        </p>
+
+                        <p>
+                            <span>Số điện thoại:</span>
+                            <span th:text="${resident.phoneNumber}"></span>
+                        </p>
+
+                        <p>
+                            <span>Giới tính:</span>
+                            <span th:text="${resident.gender}"></span>
+                        </p>
+
+                        <p>
+                            <span>Ngày sinh:</span>
+                            <span th:text="${resident.dateOfBirth != null ? #temporals.format(resident.dateOfBirth, 'dd/MM/yyyy') : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Trạng thái:</span>
+                            <span th:text="${resident.status != null ? resident.status.displayName : ''}"></span>
+                        </p>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button"
+                                class="modal-edit-btn"
+                                th:attr="data-modal-id='resident-edit-modal-' + ${resident.id}"
+                                onclick="switchResidentModal(this)">
+                            Sửa
+                        </button>
+
+                        <button type="button"
+                                class="modal-cancel-btn"
+                                onclick="closeResidentModal(this)">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL SỬA -->
+            <div class="modal-overlay resident-modal"
+                 th:id="'resident-edit-modal-' + ${resident.id}">
+                <div class="resident-edit-box">
+                    <button type="button"
+                            class="modal-close"
+                            onclick="closeResidentModal(this)">
+                        ×
+                    </button>
+
+                    <h2>Cập nhật thông tin nhân khẩu</h2>
+
+                    <div class="form-error-box d-none resident-edit-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul class="resident-edit-error-list"></ul>
+                    </div>
+
+                    <form th:action="@{/residents/{id}/update(id=${resident.id})}"
+                          method="post"
+                          class="form resident-edit-form"
+                          novalidate>
+
+                        <div class="form-group">
+                            <label>Họ và tên</label>
+                            <input type="text"
+                                   name="fullName"
+                                   class="resident-edit-full-name"
+                                   th:value="${resident.fullName}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>CCCD/CMND</label>
+                            <input type="text"
+                                   name="citizenId"
+                                   class="resident-edit-citizen-id"
+                                   th:value="${resident.citizenId}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text"
+                                   name="phoneNumber"
+                                   class="resident-edit-phone-number"
+                                   th:value="${resident.phoneNumber}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Giới tính</label>
+                            <select name="gender" class="resident-edit-gender">
+                                <option value="">-- Chọn giới tính --</option>
+                                <option value="Nam" th:selected="${resident.gender == 'Nam'}">Nam</option>
+                                <option value="Nữ" th:selected="${resident.gender == 'Nữ'}">Nữ</option>
+                                <option value="Khác" th:selected="${resident.gender == 'Khác'}">Khác</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ngày sinh</label>
+                            <input type="text"
+                                   name="dateOfBirth"
+                                   class="resident-edit-date-of-birth"
+                                   placeholder="dd/MM/yyyy"
+                                   maxlength="10"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   th:value="${resident.dateOfBirth != null ? #temporals.format(resident.dateOfBirth, 'dd/MM/yyyy') : ''}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Trạng thái</label>
+                            <select name="status" class="resident-edit-status">
+                                <option value="">-- Chọn trạng thái --</option>
+                                <option th:each="s : ${T(com.bluemoon.apartment.constant.ResidentStatus).values()}"
+                                        th:value="${s.name()}"
+                                        th:text="${s.displayName}"
+                                        th:selected="${resident.status != null and resident.status.name() == s.name()}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button"
+                                    class="btn btn-outline"
+                                    onclick="closeResidentModal(this)">
+                                Hủy
+                            </button>
+
+                            <button type="submit" class="btn btn-primary">
+                                Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <!-- MODAL THÊM NHÂN KHẨU -->
         <div id="createResidentModal" class="modal-overlay">
@@ -78,15 +261,12 @@
                     <button type="button" class="modal-close" onclick="closeCreateModal()">×</button>
                 </div>
 
-                <!-- Lỗi validate bằng JS -->
                 <div id="clientModalError" class="modal-alert-error hidden"></div>
 
-                <!-- Lỗi từ server: CCCD trùng -->
                 <div th:if="${modalErrorMessage}" class="modal-alert-error">
                     <span th:text="${modalErrorMessage}"></span>
                 </div>
 
-                <!-- Lỗi validate từ server -->
                 <div th:if="${validationErrors}" class="modal-alert-error">
                     <div th:each="err : ${validationErrors}" th:text="${err}"></div>
                 </div>
@@ -118,6 +298,7 @@
                             <option value="">-- Chọn giới tính --</option>
                             <option value="Nam">Nam</option>
                             <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
                         </select>
                     </div>
 
@@ -232,11 +413,7 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        if (date > today) {
-            return false;
-        }
-
-        return true;
+        return date <= today;
     }
 
     function ddmmyyyyToIso(value) {
@@ -294,18 +471,18 @@
         }
 
         if (!isValidDateString(dateOfBirth)) {
-            showClientError("Ngày sinh không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy.");
+            showClientError("Ngày sinh không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy và không được lớn hơn ngày hiện tại.");
             return false;
         }
 
         return true;
     }
 
-    const dateInput = document.getElementById("dateOfBirth");
+    const createDateInput = document.getElementById("dateOfBirth");
     const nativeDatePicker = document.getElementById("nativeDatePicker");
 
-    if (dateInput) {
-        dateInput.addEventListener("input", function () {
+    if (createDateInput) {
+        createDateInput.addEventListener("input", function () {
             const cursorAtEnd = this.selectionStart === this.value.length;
 
             this.value = formatDateInput(this.value);
@@ -318,7 +495,7 @@
 
     if (nativeDatePicker) {
         nativeDatePicker.addEventListener("change", function () {
-            dateInput.value = isoToDdmmyyyy(this.value);
+            createDateInput.value = isoToDdmmyyyy(this.value);
         });
     }
 
@@ -327,6 +504,152 @@
     if (shouldOpenModal) {
         openCreateModal();
     }
+</script>
+
+<script>
+    function openResidentModal(button) {
+        const modalId = button.getAttribute("data-modal-id");
+        const modal = document.getElementById(modalId);
+
+        if (modal) {
+            modal.classList.add("show");
+        }
+    }
+
+    function closeResidentModal(element) {
+        const modal = element.closest(".resident-modal");
+
+        if (modal) {
+            modal.classList.remove("show");
+        }
+    }
+
+    function switchResidentModal(button) {
+        const currentModal = button.closest(".resident-modal");
+        const targetModalId = button.getAttribute("data-modal-id");
+        const targetModal = document.getElementById(targetModalId);
+
+        if (currentModal) {
+            currentModal.classList.remove("show");
+        }
+
+        if (targetModal) {
+            targetModal.classList.add("show");
+        }
+    }
+
+    function showResidentEditErrors(form, errors) {
+        const modal = form.closest(".resident-modal");
+        const errorBox = modal.querySelector(".resident-edit-error-box");
+        const errorList = modal.querySelector(".resident-edit-error-list");
+
+        errorList.innerHTML = "";
+
+        errors.forEach(function (error) {
+            const li = document.createElement("li");
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+
+        errorBox.classList.remove("d-none");
+    }
+
+    function hideResidentEditErrors(form) {
+        const modal = form.closest(".resident-modal");
+        const errorBox = modal.querySelector(".resident-edit-error-box");
+        const errorList = modal.querySelector(".resident-edit-error-list");
+
+        errorList.innerHTML = "";
+        errorBox.classList.add("d-none");
+    }
+
+    document.querySelectorAll(".resident-edit-date-of-birth").forEach(function (input) {
+        input.addEventListener("input", function () {
+            const cursorAtEnd = this.selectionStart === this.value.length;
+
+            this.value = formatDateInput(this.value);
+
+            if (cursorAtEnd) {
+                this.selectionStart = this.selectionEnd = this.value.length;
+            }
+        });
+    });
+
+    document.querySelectorAll(".resident-edit-form").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            const errors = [];
+
+            const fullName = form.querySelector(".resident-edit-full-name");
+            const citizenId = form.querySelector(".resident-edit-citizen-id");
+            const phoneNumber = form.querySelector(".resident-edit-phone-number");
+            const gender = form.querySelector(".resident-edit-gender");
+            const dateOfBirth = form.querySelector(".resident-edit-date-of-birth");
+            const status = form.querySelector(".resident-edit-status");
+
+            hideResidentEditErrors(form);
+
+            form.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+
+            if (!fullName.value.trim()) {
+                errors.push("Họ và tên không được để trống.");
+                fullName.classList.add("input-error");
+            }
+
+            if (!citizenId.value.trim()) {
+                errors.push("CCCD/CMND không được để trống.");
+                citizenId.classList.add("input-error");
+            }
+
+            if (!phoneNumber.value.trim()) {
+                errors.push("Số điện thoại không được để trống.");
+                phoneNumber.classList.add("input-error");
+            }
+
+            if (!gender.value.trim()) {
+                errors.push("Giới tính không được để trống.");
+                gender.classList.add("input-error");
+            }
+
+            if (!dateOfBirth.value.trim()) {
+                errors.push("Ngày sinh không được để trống.");
+                dateOfBirth.classList.add("input-error");
+            } else if (!isValidDateString(dateOfBirth.value.trim())) {
+                errors.push("Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy và không được lớn hơn ngày hiện tại.");
+                dateOfBirth.classList.add("input-error");
+            }
+
+            if (!status.value.trim()) {
+                errors.push("Trạng thái không được để trống.");
+                status.classList.add("input-error");
+            }
+
+            if (errors.length > 0) {
+                event.preventDefault();
+                showResidentEditErrors(form, errors);
+            }
+        });
+    });
+
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("resident-modal")) {
+            event.target.classList.remove("show");
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            document.querySelectorAll(".resident-modal.show").forEach(function (modal) {
+                modal.classList.remove("show");
+            });
+
+            const createModal = document.getElementById("createResidentModal");
+            if (createModal) {
+                createModal.classList.remove("show");
+            }
+        }
+    });
 </script>
 
 </body>

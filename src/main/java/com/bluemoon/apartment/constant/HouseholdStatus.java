@@ -1,14 +1,14 @@
 package com.bluemoon.apartment.constant;
 
-public enum ResidentStatus {
+public enum HouseholdStatus {
     ACTIVE("Đang cư trú"),
-    TEMPORARY_RESIDENCE("Tạm trú"),
+    MOVED_OUT("Đã chuyển đi"),
     TEMPORARY_ABSENCE("Tạm vắng"),
-    MOVED_OUT("Đã chuyển đi");
+    INACTIVE("Không còn hiệu lực");
 
     private final String displayName;
 
-    ResidentStatus(String displayName) {
+    HouseholdStatus(String displayName) {
         this.displayName = displayName;
     }
 

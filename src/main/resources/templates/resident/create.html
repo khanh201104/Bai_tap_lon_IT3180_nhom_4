@@ -38,7 +38,12 @@
             </div>
             <div class="form-group">
                 <label>Ngày sinh:</label>
-                <input type="date" th:field="*{dateOfBirth}">
+                <input type="text"
+                       id="dateOfBirth"
+                       name="dateOfBirth"
+                       placeholder="dd/MM/yyyy"
+                       pattern="\d{2}/\d{2}/\d{4}"
+                       title="Vui lòng nhập ngày theo định dạng dd/MM/yyyy">
             </div>
             <div class="form-group">
                 <label>Trạng thái:</label>
@@ -56,6 +61,24 @@
 
     <div th:replace="~{layout/footer :: footer}"></div>
 </div>
+<script>
+    const dateInput = document.getElementById("dateOfBirth");
 
+    if (dateInput) {
+        dateInput.addEventListener("input", function () {
+            let value = this.value.replace(/\D/g, "");
+
+            if (value.length > 2) {
+                value = value.slice(0, 2) + "/" + value.slice(2);
+            }
+
+            if (value.length > 5) {
+                value = value.slice(0, 5) + "/" + value.slice(5, 9);
+            }
+
+            this.value = value;
+        });
+    }
+</script>
 </body>
 </html>

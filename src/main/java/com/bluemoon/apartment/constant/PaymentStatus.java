@@ -1,12 +1,14 @@
 package com.bluemoon.apartment.constant;
 
-public enum TemporaryType {
-    TEMPORARY_RESIDENCE("Tạm trú"),
-    TEMPORARY_ABSENCE("Tạm vắng");
+public enum PaymentStatus {
+    UNPAID("Chưa đóng"),
+    PAID("Đã đóng"),
+    OVERDUE("Quá hạn"),
+    CANCELLED("Đã hủy");
 
     private final String displayName;
 
-    TemporaryType(String displayName) {
+    PaymentStatus(String displayName) {
         this.displayName = displayName;
     }
 

@@ -15,50 +15,526 @@
     <main class="content">
         <div class="header-actions">
             <h1>Quản lý tạm trú / tạm vắng</h1>
-            <a th:href="@{/temporary/create}" class="btn btn-primary">Thêm mới</a>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    data-modal-id="temporary-create-modal"
+                    onclick="openTemporaryModal(this)">
+                Thêm mới
+            </button>
         </div>
 
         <div class="search-box">
             <form th:action="@{/temporary}" method="get">
-                <input type="text" name="keyword" placeholder="Tìm kiếm theo tên cư dân..." th:value="${param.keyword}">
+                <input type="text"
+                       name="keyword"
+                       placeholder="Tìm kiếm theo tên cư dân..."
+                       th:value="${param.keyword}">
                 <button type="submit" class="btn">Tìm kiếm</button>
             </form>
         </div>
 
         <table class="table">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cư dân</th>
-                    <th>Loại</th>
-                    <th>Ngày bắt đầu</th>
-                    <th>Ngày kết thúc</th>
-                    <th>Lý do</th>
-                    <th>Thao tác</th>
-                </tr>
+            <tr>
+                <th>ID</th>
+                <th>Cư dân</th>
+                <th>Loại</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th>Thao tác</th>
+            </tr>
             </thead>
+
             <tbody>
-                <tr th:each="temp : ${temporaries}">
-                    <td th:text="${temp.id}"></td>
-                    <td th:text="${temp.resident.fullName}"></td>
-                    <td th:text="${temp.type}"></td>
-                    <td th:text="${temp.startDate}"></td>
-                    <td th:text="${temp.endDate}"></td>
-                    <td th:text="${temp.reason}"></td>
-                    <td>
-                        <a th:href="@{/temporary/{id}(id=${temp.id})}" class="btn-link">Chi tiết</a>
-                        <a th:href="@{/temporary/{id}/edit(id=${temp.id})}" class="btn-link">Sửa</a>
-                        <form th:action="@{/temporary/{id}/delete(id=${temp.id})}" method="post" style="display:inline;">
-                            <button type="submit" class="btn-link text-danger" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</button>
+            <tr th:each="temp : ${temporaries}">
+                <td th:text="${temp.id}"></td>
+
+                <td th:text="${temp.resident != null ? temp.resident.fullName : 'Không xác định'}"></td>
+
+                <td th:text="${temp.type != null ? temp.type.displayName : ''}"></td>
+
+                <td th:text="${temp.startDate != null ? #temporals.format(temp.startDate, 'dd/MM/yyyy') : ''}"></td>
+
+                <td th:text="${temp.endDate != null ? #temporals.format(temp.endDate, 'dd/MM/yyyy') : ''}"></td>
+
+                <td>
+                    <div class="action-buttons">
+                        <button type="button"
+                                class="action-btn action-detail"
+                                th:attr="data-modal-id='temporary-detail-modal-' + ${temp.id}"
+                                onclick="openTemporaryModal(this)">
+                            Chi tiết
+                        </button>
+
+                        <button type="button"
+                                class="action-btn action-edit"
+                                th:attr="data-modal-id='temporary-edit-modal-' + ${temp.id}"
+                                onclick="openTemporaryModal(this)">
+                            Sửa
+                        </button>
+
+                        <form th:action="@{/temporary/{id}/delete(id=${temp.id})}"
+                              method="post"
+                              class="action-form"
+                              onsubmit="return confirm('Bạn có chắc muốn xóa thông tin này không?');">
+                            <button type="submit" class="action-btn action-delete">
+                                Xóa
+                            </button>
                         </form>
-                    </td>
-                </tr>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(temporaries)}">
+                <td colspan="6" class="empty-row">
+                    Không có dữ liệu tạm trú / tạm vắng
+                </td>
+            </tr>
             </tbody>
         </table>
+
+        <!-- MODAL THÊM MỚI -->
+        <div class="modal-overlay temporary-modal"
+             id="temporary-create-modal">
+            <div class="temporary-edit-box">
+                <button type="button"
+                        class="modal-close"
+                        onclick="closeTemporaryModal(this)">
+                    ×
+                </button>
+
+                <h2>Thêm tạm trú / tạm vắng</h2>
+
+                <div class="form-error-box d-none temporary-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul class="temporary-error-list"></ul>
+                </div>
+
+                <form th:action="@{/temporary}"
+                      method="post"
+                      class="form temporary-form"
+                      novalidate>
+
+                    <div class="form-group">
+                        <label>Cư dân:</label>
+                        <select name="residentId" class="temporary-resident">
+                            <option value="">-- Chọn cư dân --</option>
+                            <option th:each="resident : ${residents}"
+                                    th:value="${resident.id}"
+                                    th:text="${resident.fullName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loại:</label>
+                        <select name="type" class="temporary-type">
+                            <option value="">-- Chọn loại --</option>
+                            <option th:each="type : ${T(com.bluemoon.apartment.constant.TemporaryType).values()}"
+                                    th:value="${type.name()}"
+                                    th:text="${type.displayName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày bắt đầu:</label>
+                        <input type="text"
+                               name="startDate"
+                               class="temporary-start-date"
+                               placeholder="dd/MM/yyyy"
+                               maxlength="10"
+                               inputmode="numeric"
+                               autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày kết thúc:</label>
+                        <input type="text"
+                               name="endDate"
+                               class="temporary-end-date"
+                               placeholder="dd/MM/yyyy"
+                               maxlength="10"
+                               inputmode="numeric"
+                               autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Lý do:</label>
+                        <textarea name="reason"
+                                  class="temporary-reason"
+                                  rows="3"
+                                  placeholder="Nhập lý do..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button"
+                                class="btn"
+                                onclick="closeTemporaryModal(this)">
+                            Hủy
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL CHI TIẾT + SỬA -->
+        <div th:each="temp : ${temporaries}">
+            <div class="modal-overlay temporary-modal"
+                 th:id="'temporary-detail-modal-' + ${temp.id}">
+                <div class="resident-detail-box">
+                    <button type="button"
+                            class="modal-close"
+                            onclick="closeTemporaryModal(this)">
+                        ×
+                    </button>
+
+                    <h2>Chi tiết tạm trú / tạm vắng</h2>
+
+                    <div class="resident-info">
+                        <p>
+                            <span>ID:</span>
+                            <span th:text="${temp.id}"></span>
+                        </p>
+
+                        <p>
+                            <span>Cư dân:</span>
+                            <span th:text="${temp.resident != null ? temp.resident.fullName : 'Không xác định'}"></span>
+                        </p>
+
+                        <p>
+                            <span>Loại:</span>
+                            <span th:text="${temp.type != null ? temp.type.displayName : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Ngày bắt đầu:</span>
+                            <span th:text="${temp.startDate != null ? #temporals.format(temp.startDate, 'dd/MM/yyyy') : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Ngày kết thúc:</span>
+                            <span th:text="${temp.endDate != null ? #temporals.format(temp.endDate, 'dd/MM/yyyy') : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Lý do:</span>
+                            <span th:text="${temp.reason}"></span>
+                        </p>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button"
+                                class="modal-edit-btn"
+                                th:attr="data-modal-id='temporary-edit-modal-' + ${temp.id}"
+                                onclick="switchTemporaryModal(this)">
+                            Sửa
+                        </button>
+
+                        <button type="button"
+                                class="modal-cancel-btn"
+                                onclick="closeTemporaryModal(this)">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay temporary-modal"
+                 th:id="'temporary-edit-modal-' + ${temp.id}">
+                <div class="temporary-edit-box">
+                    <button type="button"
+                            class="modal-close"
+                            onclick="closeTemporaryModal(this)">
+                        ×
+                    </button>
+
+                    <h2>Cập nhật tạm trú / tạm vắng</h2>
+
+                    <div class="form-error-box d-none temporary-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul class="temporary-error-list"></ul>
+                    </div>
+
+                    <form th:action="@{/temporary/{id}/update(id=${temp.id})}"
+                          method="post"
+                          class="form temporary-form temporary-edit-form"
+                          novalidate>
+
+                        <div class="form-group">
+                            <label>Cư dân:</label>
+                            <select name="residentId" class="temporary-resident">
+                                <option value="">-- Chọn cư dân --</option>
+                                <option th:each="resident : ${residents}"
+                                        th:value="${resident.id}"
+                                        th:text="${resident.fullName}"
+                                        th:selected="${temp.resident != null and resident.id == temp.resident.id}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Loại:</label>
+                            <select name="type" class="temporary-type">
+                                <option value="">-- Chọn loại --</option>
+                                <option th:each="type : ${T(com.bluemoon.apartment.constant.TemporaryType).values()}"
+                                        th:value="${type.name()}"
+                                        th:text="${type.displayName}"
+                                        th:selected="${temp.type != null and type.name() == temp.type.name()}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ngày bắt đầu:</label>
+                            <input type="text"
+                                   name="startDate"
+                                   class="temporary-start-date"
+                                   placeholder="dd/MM/yyyy"
+                                   maxlength="10"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   th:value="${temp.startDate != null ? #temporals.format(temp.startDate, 'dd/MM/yyyy') : ''}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ngày kết thúc:</label>
+                            <input type="text"
+                                   name="endDate"
+                                   class="temporary-end-date"
+                                   placeholder="dd/MM/yyyy"
+                                   maxlength="10"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   th:value="${temp.endDate != null ? #temporals.format(temp.endDate, 'dd/MM/yyyy') : ''}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Lý do:</label>
+                            <textarea name="reason"
+                                      class="temporary-reason"
+                                      rows="3"
+                                      placeholder="Nhập lý do..."
+                                      th:text="${temp.reason}">
+                            </textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button"
+                                    class="btn"
+                                    onclick="closeTemporaryModal(this)">
+                                Hủy
+                            </button>
+
+                            <button type="submit" class="btn btn-primary">
+                                Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </main>
 
     <div th:replace="~{layout/footer :: footer}"></div>
 </div>
+
+<script>
+    function openTemporaryModal(button) {
+        const modalId = button.getAttribute("data-modal-id");
+        const modal = document.getElementById(modalId);
+
+        if (modal) {
+            modal.classList.add("show");
+        }
+    }
+
+    function closeTemporaryModal(element) {
+        const modal = element.closest(".temporary-modal");
+
+        if (modal) {
+            modal.classList.remove("show");
+
+            const errorBox = modal.querySelector(".temporary-error-box");
+            const errorList = modal.querySelector(".temporary-error-list");
+
+            if (errorBox && errorList) {
+                errorList.innerHTML = "";
+                errorBox.classList.add("d-none");
+            }
+
+            modal.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+        }
+    }
+
+    function switchTemporaryModal(button) {
+        const currentModal = button.closest(".temporary-modal");
+        const targetModalId = button.getAttribute("data-modal-id");
+        const targetModal = document.getElementById(targetModalId);
+
+        if (currentModal) {
+            currentModal.classList.remove("show");
+        }
+
+        if (targetModal) {
+            targetModal.classList.add("show");
+        }
+    }
+
+    function showTemporaryErrors(form, errors) {
+        const modal = form.closest(".temporary-modal");
+        const errorBox = modal.querySelector(".temporary-error-box");
+        const errorList = modal.querySelector(".temporary-error-list");
+
+        errorList.innerHTML = "";
+
+        errors.forEach(function (error) {
+            const li = document.createElement("li");
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+
+        errorBox.classList.remove("d-none");
+    }
+
+    function isValidDateVN(value) {
+        const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/[0-9]{4}$/;
+
+        if (!regex.test(value)) {
+            return false;
+        }
+
+        const parts = value.split("/");
+        const day = Number(parts[0]);
+        const month = Number(parts[1]);
+        const year = Number(parts[2]);
+
+        const date = new Date(year, month - 1, day);
+
+        return date.getFullYear() === year
+            && date.getMonth() === month - 1
+            && date.getDate() === day;
+    }
+
+    function parseDateVN(value) {
+        const parts = value.split("/");
+        const day = Number(parts[0]);
+        const month = Number(parts[1]);
+        const year = Number(parts[2]);
+
+        return new Date(year, month - 1, day);
+    }
+
+    function autoFormatDateInput(input) {
+        input.addEventListener("input", function () {
+            let value = this.value.replace(/\D/g, "").slice(0, 8);
+
+            if (value.length > 4) {
+                value = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4);
+            } else if (value.length > 2) {
+                value = value.slice(0, 2) + "/" + value.slice(2);
+            }
+
+            this.value = value;
+        });
+    }
+
+    document.querySelectorAll(".temporary-start-date, .temporary-end-date").forEach(function (input) {
+        autoFormatDateInput(input);
+    });
+
+    document.querySelectorAll(".temporary-form").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            const errors = [];
+
+            const resident = form.querySelector(".temporary-resident");
+            const type = form.querySelector(".temporary-type");
+            const startDate = form.querySelector(".temporary-start-date");
+            const endDate = form.querySelector(".temporary-end-date");
+            const reason = form.querySelector(".temporary-reason");
+
+            form.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+
+            const errorBox = form.closest(".temporary-modal").querySelector(".temporary-error-box");
+            const errorList = form.closest(".temporary-modal").querySelector(".temporary-error-list");
+
+            if (errorBox && errorList) {
+                errorList.innerHTML = "";
+                errorBox.classList.add("d-none");
+            }
+
+            if (!resident.value.trim()) {
+                errors.push("Cư dân không được để trống.");
+                resident.classList.add("input-error");
+            }
+
+            if (!type.value.trim()) {
+                errors.push("Loại tạm trú/tạm vắng không được để trống.");
+                type.classList.add("input-error");
+            }
+
+            if (!startDate.value.trim()) {
+                errors.push("Ngày bắt đầu không được để trống.");
+                startDate.classList.add("input-error");
+            } else if (!isValidDateVN(startDate.value.trim())) {
+                errors.push("Ngày bắt đầu không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy.");
+                startDate.classList.add("input-error");
+            }
+
+            if (!endDate.value.trim()) {
+                errors.push("Ngày kết thúc không được để trống.");
+                endDate.classList.add("input-error");
+            } else if (!isValidDateVN(endDate.value.trim())) {
+                errors.push("Ngày kết thúc không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy.");
+                endDate.classList.add("input-error");
+            }
+
+            if (isValidDateVN(startDate.value.trim()) && isValidDateVN(endDate.value.trim())) {
+                const start = parseDateVN(startDate.value.trim());
+                const end = parseDateVN(endDate.value.trim());
+
+                if (end < start) {
+                    errors.push("Ngày kết thúc không được nhỏ hơn ngày bắt đầu.");
+                    startDate.classList.add("input-error");
+                    endDate.classList.add("input-error");
+                }
+            }
+
+            if (!reason.value.trim()) {
+                errors.push("Lý do không được để trống.");
+                reason.classList.add("input-error");
+            }
+
+            if (errors.length > 0) {
+                event.preventDefault();
+                showTemporaryErrors(form, errors);
+            }
+        });
+    });
+
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("temporary-modal")) {
+            event.target.classList.remove("show");
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            document.querySelectorAll(".temporary-modal.show").forEach(function (modal) {
+                modal.classList.remove("show");
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

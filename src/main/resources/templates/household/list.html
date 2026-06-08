@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý hộ khẩu - Bluemoon</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="content">
+        <div class="header-actions">
+            <h1>Quản lý hộ khẩu</h1>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    data-modal-id="household-create-modal"
+                    onclick="openHouseholdModal(this)">
+                Thêm hộ khẩu
+            </button>
+        </div>
+
+        <div class="search-box">
+            <form th:action="@{/households}" method="get">
+                <input type="text"
+                       name="keyword"
+                       placeholder="Tìm kiếm theo mã hộ khẩu, căn hộ, chủ hộ..."
+                       th:value="${keyword}">
+                <button type="submit" class="btn">Tìm kiếm</button>
+            </form>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã hộ khẩu</th>
+                <th>Số căn hộ</th>
+                <th>Diện tích</th>
+                <th>Chủ hộ</th>
+                <th>Số thành viên</th>
+                <th>Ngày lập</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="household : ${households}">
+                <td th:text="${household.id}"></td>
+                <td th:text="${household.householdCode}"></td>
+                <td th:text="${household.apartmentNumber}"></td>
+                <td th:text="${household.apartmentArea != null ? household.apartmentArea + ' m²' : ''}"></td>
+                <td th:text="${household.headResidentName}"></td>
+                <td th:text="${household.memberCount}"></td>
+                <td th:text="${household.createdDate != null ? #temporals.format(household.createdDate, 'dd/MM/yyyy') : ''}"></td>
+                <td th:text="${household.status != null ? household.status.displayName : ''}"></td>
+
+                <td>
+                    <div class="action-buttons">
+                        <button type="button"
+                                class="action-btn action-detail"
+                                th:attr="data-modal-id='household-detail-modal-' + ${household.id}"
+                                onclick="openHouseholdModal(this)">
+                            Chi tiết
+                        </button>
+
+                        <button type="button"
+                                class="action-btn action-edit"
+                                th:attr="data-modal-id='household-edit-modal-' + ${household.id}"
+                                onclick="openHouseholdModal(this)">
+                            Sửa
+                        </button>
+
+                        <form th:action="@{/households/{id}/delete(id=${household.id})}"
+                              method="post"
+                              class="action-form"
+                              onsubmit="return confirm('Bạn có chắc muốn xóa hộ khẩu này không?');">
+                            <button type="submit" class="action-btn action-delete">
+                                Xóa
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(households)}">
+                <td colspan="9" class="empty-row">
+                    Không có dữ liệu hộ khẩu
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- MODAL THÊM HỘ KHẨU -->
+        <div class="modal-overlay household-modal"
+             id="household-create-modal"
+             th:classappend="${createModalOpen != null and createModalOpen} ? ' show' : ''">
+            <div class="household-edit-box">
+                <button type="button"
+                        class="modal-close"
+                        onclick="closeHouseholdModal(this)">
+                    ×
+                </button>
+
+                <h2>Thêm hộ khẩu</h2>
+
+                <div class="form-error-box d-none household-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul class="household-error-list"></ul>
+                </div>
+
+                <div th:if="${createModalOpen != null and createModalOpen and modalErrorMessage != null}"
+                     class="form-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul>
+                        <li th:text="${modalErrorMessage}"></li>
+                    </ul>
+                </div>
+
+                <div th:if="${createModalOpen != null and createModalOpen and validationErrors != null}"
+                     class="form-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul>
+                        <li th:each="error : ${validationErrors}"
+                            th:text="${error}">
+                        </li>
+                    </ul>
+                </div>
+
+                <form th:action="@{/households}"
+                      method="post"
+                      class="form household-form"
+                      novalidate>
+
+                    <div class="form-group">
+                        <label>Mã hộ khẩu:</label>
+                        <input type="text"
+                               name="householdCode"
+                               class="household-code"
+                               placeholder="VD: HK001">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số căn hộ:</label>
+                        <input type="text"
+                               name="apartmentNumber"
+                               class="household-apartment"
+                               placeholder="VD: A1201">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Diện tích căn hộ:</label>
+                        <input type="number"
+                               name="apartmentArea"
+                               class="household-area"
+                               placeholder="VD: 75.5"
+                               min="1"
+                               step="0.1">
+                        <small class="form-hint">Đơn vị: m²</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Địa chỉ:</label>
+                        <input type="text"
+                               name="address"
+                               class="household-address"
+                               placeholder="VD: Tòa A, tầng 12">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Chủ hộ:</label>
+                        <select name="headResidentId"
+                                class="household-head">
+                            <option value="">-- Chọn chủ hộ --</option>
+                            <option th:each="resident : ${residents}"
+                                    th:value="${resident.id}"
+                                    th:text="${resident.fullName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày lập:</label>
+                        <input type="text"
+                               name="createdDate"
+                               class="household-created-date"
+                               placeholder="dd/MM/yyyy"
+                               maxlength="10"
+                               inputmode="numeric"
+                               autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trạng thái:</label>
+                        <select name="status"
+                                class="household-status">
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option th:each="status : ${T(com.bluemoon.apartment.constant.HouseholdStatus).values()}"
+                                    th:value="${status.name()}"
+                                    th:text="${status.displayName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ghi chú:</label>
+                        <textarea name="note"
+                                  class="household-note"
+                                  rows="3"
+                                  placeholder="Nhập ghi chú nếu có..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button"
+                                class="btn"
+                                onclick="closeHouseholdModal(this)">
+                            Hủy
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL CHI TIẾT + SỬA -->
+        <div th:each="household : ${households}">
+
+            <!-- MODAL CHI TIẾT -->
+            <div class="modal-overlay household-modal"
+                 th:id="'household-detail-modal-' + ${household.id}">
+                <div class="household-detail-box">
+                    <button type="button"
+                            class="modal-close"
+                            onclick="closeHouseholdModal(this)">
+                        ×
+                    </button>
+
+                    <h2>Chi tiết hộ khẩu</h2>
+
+                    <div class="resident-info">
+                        <p>
+                            <span>ID:</span>
+                            <span th:text="${household.id}"></span>
+                        </p>
+
+                        <p>
+                            <span>Mã hộ khẩu:</span>
+                            <span th:text="${household.householdCode}"></span>
+                        </p>
+
+                        <p>
+                            <span>Số căn hộ:</span>
+                            <span th:text="${household.apartmentNumber}"></span>
+                        </p>
+
+                        <p>
+                            <span>Diện tích:</span>
+                            <span th:text="${household.apartmentArea != null ? household.apartmentArea + ' m²' : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Địa chỉ:</span>
+                            <span th:text="${household.address}"></span>
+                        </p>
+
+                        <p>
+                            <span>Chủ hộ:</span>
+                            <span th:text="${household.headResidentName}"></span>
+                        </p>
+
+                        <p>
+                            <span>Ngày lập:</span>
+                            <span th:text="${household.createdDate != null ? #temporals.format(household.createdDate, 'dd/MM/yyyy') : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Trạng thái:</span>
+                            <span th:text="${household.status != null ? household.status.displayName : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Ghi chú:</span>
+                            <span th:text="${household.note}"></span>
+                        </p>
+                    </div>
+
+                    <h3 class="modal-section-title">Danh sách thành viên</h3>
+
+                    <table class="mini-table">
+                        <thead>
+                        <tr>
+                            <th>Họ tên</th>
+                            <th>CCCD</th>
+                            <th>SĐT</th>
+                            <th>Quan hệ</th>
+                            <th>Ngày tham gia</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="member : ${household.members}">
+                            <td th:text="${member.residentFullName}"></td>
+                            <td th:text="${member.citizenId}"></td>
+                            <td th:text="${member.phoneNumber}"></td>
+                            <td th:text="${member.relationship != null ? member.relationship.displayName : ''}"></td>
+                            <td th:text="${member.joinedDate != null ? #temporals.format(member.joinedDate, 'dd/MM/yyyy') : ''}"></td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(household.members)}">
+                            <td colspan="5" class="empty-row">
+                                Chưa có thành viên
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="modal-actions">
+                        <button type="button"
+                                class="modal-edit-btn"
+                                th:attr="data-modal-id='household-edit-modal-' + ${household.id}"
+                                onclick="switchHouseholdModal(this)">
+                            Sửa
+                        </button>
+
+                        <button type="button"
+                                class="modal-cancel-btn"
+                                onclick="closeHouseholdModal(this)">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL SỬA -->
+            <div class="modal-overlay household-modal"
+                 th:id="'household-edit-modal-' + ${household.id}"
+                 th:classappend="${(editErrorId != null and editErrorId == household.id) or (memberErrorHouseholdId != null and memberErrorHouseholdId == household.id)} ? ' show' : ''">
+                <div class="household-edit-box">
+                    <button type="button"
+                            class="modal-close"
+                            onclick="closeHouseholdModal(this)">
+                        ×
+                    </button>
+
+                    <h2>Cập nhật hộ khẩu</h2>
+
+                    <div class="form-error-box d-none household-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul class="household-error-list"></ul>
+                    </div>
+
+                    <div th:if="${editErrorId != null and editErrorId == household.id and modalErrorMessage != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:text="${modalErrorMessage}"></li>
+                        </ul>
+                    </div>
+
+                    <div th:if="${editErrorId != null and editErrorId == household.id and validationErrors != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:each="error : ${validationErrors}"
+                                th:text="${error}">
+                            </li>
+                        </ul>
+                    </div>
+
+                    <form th:action="@{/households/{id}/update(id=${household.id})}"
+                          method="post"
+                          class="form household-form"
+                          novalidate>
+
+                        <div class="form-group">
+                            <label>Mã hộ khẩu:</label>
+                            <input type="text"
+                                   name="householdCode"
+                                   class="household-code"
+                                   th:value="${household.householdCode}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Số căn hộ:</label>
+                            <input type="text"
+                                   name="apartmentNumber"
+                                   class="household-apartment"
+                                   th:value="${household.apartmentNumber}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Diện tích căn hộ:</label>
+                            <input type="number"
+                                   name="apartmentArea"
+                                   class="household-area"
+                                   min="1"
+                                   step="0.1"
+                                   th:value="${household.apartmentArea}">
+                            <small class="form-hint">Đơn vị: m²</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Địa chỉ:</label>
+                            <input type="text"
+                                   name="address"
+                                   class="household-address"
+                                   th:value="${household.address}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chủ hộ:</label>
+                            <select name="headResidentId"
+                                    class="household-head">
+                                <option value="">-- Chọn chủ hộ --</option>
+                                <option th:each="resident : ${residents}"
+                                        th:value="${resident.id}"
+                                        th:text="${resident.fullName}"
+                                        th:selected="${household.headResidentId != null and resident.id == household.headResidentId}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ngày lập:</label>
+                            <input type="text"
+                                   name="createdDate"
+                                   class="household-created-date"
+                                   placeholder="dd/MM/yyyy"
+                                   maxlength="10"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   th:value="${household.createdDate != null ? #temporals.format(household.createdDate, 'dd/MM/yyyy') : ''}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Trạng thái:</label>
+                            <select name="status"
+                                    class="household-status">
+                                <option value="">-- Chọn trạng thái --</option>
+                                <option th:each="status : ${T(com.bluemoon.apartment.constant.HouseholdStatus).values()}"
+                                        th:value="${status.name()}"
+                                        th:text="${status.displayName}"
+                                        th:selected="${household.status != null and status.name() == household.status.name()}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ghi chú:</label>
+                            <textarea name="note"
+                                      class="household-note"
+                                      rows="3"
+                                      placeholder="Nhập ghi chú nếu có..."
+                                      th:text="${household.note}">
+                            </textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button"
+                                    class="btn"
+                                    onclick="closeHouseholdModal(this)">
+                                Hủy
+                            </button>
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+                                Cập nhật
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="modal-divider">
+
+                    <h3 class="modal-section-title">Quản lý thành viên</h3>
+
+                    <table class="mini-table">
+                        <thead>
+                        <tr>
+                            <th>Họ tên</th>
+                            <th>Quan hệ</th>
+                            <th>Ngày tham gia</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="member : ${household.members}">
+                            <td th:text="${member.residentFullName}"></td>
+                            <td th:text="${member.relationship != null ? member.relationship.displayName : ''}"></td>
+                            <td th:text="${member.joinedDate != null ? #temporals.format(member.joinedDate, 'dd/MM/yyyy') : ''}"></td>
+                            <td>
+                                <form th:action="@{/households/{householdId}/members/{memberId}/delete(householdId=${household.id}, memberId=${member.id})}"
+                                      method="post"
+                                      class="action-form"
+                                      onsubmit="return confirm('Bạn có chắc muốn xóa thành viên này khỏi hộ khẩu không?');">
+                                    <button type="submit" class="action-btn action-delete">
+                                        Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(household.members)}">
+                            <td colspan="4" class="empty-row">
+                                Chưa có thành viên
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="modal-section-title">Thêm thành viên</h3>
+
+                    <div class="form-error-box d-none household-member-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul class="household-member-error-list"></ul>
+                    </div>
+
+                    <div th:if="${memberErrorHouseholdId != null and memberErrorHouseholdId == household.id and modalErrorMessage != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:text="${modalErrorMessage}"></li>
+                        </ul>
+                    </div>
+
+                    <div th:if="${memberErrorHouseholdId != null and memberErrorHouseholdId == household.id and validationErrors != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:each="error : ${validationErrors}"
+                                th:text="${error}">
+                            </li>
+                        </ul>
+                    </div>
+
+                    <form th:action="@{/households/{id}/members(id=${household.id})}"
+                          method="post"
+                          class="form household-member-form"
+                          novalidate>
+
+                        <div class="form-group">
+                            <label>Cư dân:</label>
+                            <select name="residentId"
+                                    class="member-resident">
+                                <option value="">-- Chọn cư dân --</option>
+                                <option th:each="resident : ${residents}"
+                                        th:value="${resident.id}"
+                                        th:text="${resident.fullName}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Quan hệ:</label>
+                            <select name="relationship"
+                                    class="member-relationship">
+                                <option value="">-- Chọn quan hệ --</option>
+                                <option th:each="relationship : ${T(com.bluemoon.apartment.constant.RelationshipType).values()}"
+                                        th:value="${relationship.name()}"
+                                        th:text="${relationship.displayName}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ngày tham gia:</label>
+                            <input type="text"
+                                   name="joinedDate"
+                                   class="member-joined-date"
+                                   placeholder="dd/MM/yyyy"
+                                   maxlength="10"
+                                   inputmode="numeric"
+                                   autocomplete="off">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit"
+                                    class="btn btn-primary">
+                                Thêm thành viên
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+
+<script th:inline="javascript">
+    function openHouseholdModal(button) {
+        const modalId = button.getAttribute("data-modal-id");
+        const modal = document.getElementById(modalId);
+
+        if (modal) {
+            modal.classList.add("show");
+        }
+    }
+
+    function closeHouseholdModal(element) {
+        const modal = element.closest(".household-modal");
+
+        if (modal) {
+            modal.classList.remove("show");
+
+            modal.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+
+            modal.querySelectorAll(".household-error-box, .household-member-error-box").forEach(function (box) {
+                box.classList.add("d-none");
+            });
+
+            modal.querySelectorAll(".household-error-list, .household-member-error-list").forEach(function (list) {
+                list.innerHTML = "";
+            });
+        }
+    }
+
+    function switchHouseholdModal(button) {
+        const currentModal = button.closest(".household-modal");
+        const targetModalId = button.getAttribute("data-modal-id");
+        const targetModal = document.getElementById(targetModalId);
+
+        if (currentModal) {
+            currentModal.classList.remove("show");
+        }
+
+        if (targetModal) {
+            targetModal.classList.add("show");
+        }
+    }
+
+    function showErrors(errorBox, errorList, errors) {
+        errorList.innerHTML = "";
+
+        errors.forEach(function (error) {
+            const li = document.createElement("li");
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+
+        errorBox.classList.remove("d-none");
+    }
+
+    function formatDateInput(value) {
+        let digits = value.replace(/\D/g, "").slice(0, 8);
+
+        if (digits.length > 4) {
+            return digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+        }
+
+        if (digits.length > 2) {
+            return digits.slice(0, 2) + "/" + digits.slice(2);
+        }
+
+        return digits;
+    }
+
+    function isValidDateVN(value) {
+        const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/[0-9]{4}$/;
+
+        if (!regex.test(value)) {
+            return false;
+        }
+
+        const parts = value.split("/");
+        const day = Number(parts[0]);
+        const month = Number(parts[1]);
+        const year = Number(parts[2]);
+
+        const date = new Date(year, month - 1, day);
+
+        return date.getFullYear() === year
+            && date.getMonth() === month - 1
+            && date.getDate() === day;
+    }
+
+    function isPositiveNumber(value) {
+        if (!value.trim()) {
+            return false;
+        }
+
+        const number = Number(value);
+
+        return !Number.isNaN(number) && number > 0;
+    }
+
+    document.querySelectorAll(".household-created-date, .member-joined-date").forEach(function (input) {
+        input.addEventListener("input", function () {
+            this.value = formatDateInput(this.value);
+        });
+    });
+
+    document.querySelectorAll(".household-form").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            const errors = [];
+
+            const code = form.querySelector(".household-code");
+            const apartment = form.querySelector(".household-apartment");
+            const area = form.querySelector(".household-area");
+            const head = form.querySelector(".household-head");
+            const createdDate = form.querySelector(".household-created-date");
+            const status = form.querySelector(".household-status");
+
+            form.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+
+            const modal = form.closest(".household-modal");
+            const errorBox = modal.querySelector(".household-error-box");
+            const errorList = modal.querySelector(".household-error-list");
+
+            errorBox.classList.add("d-none");
+            errorList.innerHTML = "";
+
+            if (!code.value.trim()) {
+                errors.push("Mã hộ khẩu không được để trống.");
+                code.classList.add("input-error");
+            }
+
+            if (!apartment.value.trim()) {
+                errors.push("Số căn hộ không được để trống.");
+                apartment.classList.add("input-error");
+            }
+
+            if (!area.value.trim()) {
+                errors.push("Diện tích căn hộ không được để trống.");
+                area.classList.add("input-error");
+            } else if (!isPositiveNumber(area.value.trim())) {
+                errors.push("Diện tích căn hộ phải là số lớn hơn 0.");
+                area.classList.add("input-error");
+            }
+
+            if (!head.value.trim()) {
+                errors.push("Chủ hộ không được để trống.");
+                head.classList.add("input-error");
+            }
+
+            if (!createdDate.value.trim()) {
+                errors.push("Ngày lập hộ khẩu không được để trống.");
+                createdDate.classList.add("input-error");
+            } else if (!isValidDateVN(createdDate.value.trim())) {
+                errors.push("Ngày lập hộ khẩu không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy.");
+                createdDate.classList.add("input-error");
+            }
+
+            if (!status.value.trim()) {
+                errors.push("Trạng thái hộ khẩu không được để trống.");
+                status.classList.add("input-error");
+            }
+
+            if (errors.length > 0) {
+                event.preventDefault();
+                showErrors(errorBox, errorList, errors);
+            }
+        });
+    });
+
+    document.querySelectorAll(".household-member-form").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            const errors = [];
+
+            const resident = form.querySelector(".member-resident");
+            const relationship = form.querySelector(".member-relationship");
+            const joinedDate = form.querySelector(".member-joined-date");
+
+            form.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+
+            const modal = form.closest(".household-modal");
+            const errorBox = modal.querySelector(".household-member-error-box");
+            const errorList = modal.querySelector(".household-member-error-list");
+
+            errorBox.classList.add("d-none");
+            errorList.innerHTML = "";
+
+            if (!resident.value.trim()) {
+                errors.push("Cư dân không được để trống.");
+                resident.classList.add("input-error");
+            }
+
+            if (!relationship.value.trim()) {
+                errors.push("Quan hệ với chủ hộ không được để trống.");
+                relationship.classList.add("input-error");
+            }
+
+            if (!joinedDate.value.trim()) {
+                errors.push("Ngày tham gia hộ khẩu không được để trống.");
+                joinedDate.classList.add("input-error");
+            } else if (!isValidDateVN(joinedDate.value.trim())) {
+                errors.push("Ngày tham gia hộ khẩu không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy.");
+                joinedDate.classList.add("input-error");
+            }
+
+            if (errors.length > 0) {
+                event.preventDefault();
+                showErrors(errorBox, errorList, errors);
+            }
+        });
+    });
+
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("household-modal")) {
+            event.target.classList.remove("show");
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            document.querySelectorAll(".household-modal.show").forEach(function (modal) {
+                modal.classList.remove("show");
+            });
+        }
+    });
+
+    const createModalOpen = /*[[${createModalOpen != null && createModalOpen}]]*/ false;
+    const editErrorId = /*[[${editErrorId}]]*/ null;
+    const memberErrorHouseholdId = /*[[${memberErrorHouseholdId}]]*/ null;
+
+    if (createModalOpen) {
+        const modal = document.getElementById("household-create-modal");
+        if (modal) {
+            modal.classList.add("show");
+        }
+    }
+
+    if (editErrorId !== null) {
+        const modal = document.getElementById("household-edit-modal-" + editErrorId);
+        if (modal) {
+            modal.classList.add("show");
+        }
+    }
+
+    if (memberErrorHouseholdId !== null) {
+        const modal = document.getElementById("household-edit-modal-" + memberErrorHouseholdId);
+        if (modal) {
+            modal.classList.add("show");
+        }
+    }
+</script>
+
+</body>
+</html>

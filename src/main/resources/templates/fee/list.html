@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý khoản phí - Bluemoon</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+    <main class="content">
+        <div class="header-actions"><h1>Quản lý khoản phí</h1>
+            <div class="header-button-group">
+                <button type="button" class="btn btn-primary" data-modal-id="fee-payment-create-modal"
+                        onclick="openFeeModal(this)"> Thêm phiếu thu
+                </button>
+                <a th:href="@{/fees/types}" class="btn btn-outline">
+                    Quản lý loại phí
+                </a>
+            </div>
+        </div>
+        <div class="fee-generate-actions">
+            <form th:action="@{/fees/generate/monthly}" method="post"
+                  onsubmit="return confirm('Sinh phiếu thu tháng này cho toàn bộ hộ khẩu?');">
+                <button type="submit" class="btn btn-outline"> Sinh phiếu thu tháng này</button>
+            </form>
+            <form th:action="@{/fees/generate/yearly}" method="post"
+                  onsubmit="return confirm('Sinh phiếu thu năm nay cho toàn bộ hộ khẩu?');">
+                <button type="submit" class="btn btn-outline"> Sinh phiếu thu năm nay</button>
+            </form>
+        </div>
+        <div th:if="${feeTypeDeleteError != null}" class="form-error-box">
+            <div class="form-error-title">Không thể xóa loại phí</div>
+            <ul>
+                <li th:text="${feeTypeDeleteError}"></li>
+            </ul>
+        </div>
+        <div th:if="${feePaymentActionError != null}" class="form-error-box">
+            <div class="form-error-title">Không thể thực hiện thao tác</div>
+            <ul>
+                <li th:text="${feePaymentActionError}"></li>
+            </ul>
+        </div>
+        <div class="search-box">
+            <form th:action="@{/fees}" method="get"><input type="text" name="keyword"
+                                                           placeholder="Tìm kiếm theo hộ khẩu, căn hộ, loại phí..."
+                                                           th:value="${keyword}">
+                <button type="submit" class="btn">Tìm kiếm</button>
+            </form>
+        </div>
+        <h2 class="page-section-title">Danh sách phiếu thu</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Hộ khẩu</th>
+                <th>Căn hộ</th>
+                <th>Loại phí</th>
+                <th>Nhóm phí</th>
+                <th>Kỳ thu</th>
+                <th>Số tiền</th>
+                <th>Hạn đóng</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="payment : ${payments}">
+                <td th:text="${payment.id}"></td>
+                <td th:text="${payment.householdCode}"></td>
+                <td th:text="${payment.apartmentNumber}"></td>
+                <td th:text="${payment.feeTypeName}"></td>
+                <td th:text="${payment.feeGroup != null ? payment.feeGroup.displayName : ''}"></td>
+                <td th:text="${payment.period}"></td>
+                <td th:text="${payment.amount != null ? #numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + ' đ' : ''}"></td>
+                <td th:text="${payment.dueDate != null ? #temporals.format(payment.dueDate, 'dd/MM/yyyy') : ''}"></td>
+                <td th:text="${payment.status != null ? payment.status.displayName : ''}"></td>
+                <td>
+                    <div class="action-buttons">
+                        <button type="button" class="action-btn action-detail"
+                                th:attr="data-modal-id='fee-payment-detail-modal-' + ${payment.id}"
+                                onclick="openFeeModal(this)"> Chi tiết
+                        </button>
+                        <button type="button" class="action-btn action-edit"
+                                th:attr="data-modal-id='fee-payment-edit-modal-' + ${payment.id}"
+                                onclick="openFeeModal(this)"> Sửa
+                        </button>
+                        <form th:if="${payment.status == null or payment.status.name() != 'PAID'}"
+                              th:action="@{/fees/payments/{id}/paid(id=${payment.id})}" method="post"
+                              class="action-form" onsubmit="return confirm('Xác nhận thanh toán phiếu thu này?');">
+                            <button type="submit" class="action-btn action-pay"> Thanh toán</button>
+                        </form>
+                        <form th:action="@{/fees/payments/{id}/cancel(id=${payment.id})}" method="post"
+                              class="action-form"
+                              onsubmit="return confirm('Bạn có chắc muốn hủy phiếu thu này không?');">
+                            <button type="submit" class="action-btn action-warning"> Hủy</button>
+                        </form>
+                        <form th:action="@{/fees/payments/{id}/delete(id=${payment.id})}" method="post"
+                              class="action-form"
+                              onsubmit="return confirm('Bạn có chắc muốn xóa phiếu thu này không?');">
+                            <button type="submit" class="action-btn action-delete"> Xóa</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(payments)}">
+                <td colspan="10" class="empty-row"> Không có dữ liệu phiếu thu</td>
+            </tr>
+            </tbody>
+        </table>
+         <!-- MODAL THÊM PHIẾU THU -->
+        <div class="modal-overlay fee-modal" id="fee-payment-create-modal"
+             th:classappend="${feePaymentCreateOpen != null and feePaymentCreateOpen} ? ' show' : ''">
+            <div class="fee-edit-box">
+                <button type="button" class="modal-close" onclick="closeFeeModal(this)">×</button>
+                <h2>Thêm phiếu thu</h2>
+                <div class="form-error-box d-none fee-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul class="fee-error-list"></ul>
+                </div>
+                <div th:if="${feePaymentCreateOpen != null and feePaymentCreateOpen and modalErrorMessage != null}"
+                     class="form-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul>
+                        <li th:text="${modalErrorMessage}"></li>
+                    </ul>
+                </div>
+                <div th:if="${feePaymentCreateOpen != null and feePaymentCreateOpen and validationErrors != null}"
+                     class="form-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul>
+                        <li th:each="error : ${validationErrors}" th:text="${error}"></li>
+                    </ul>
+                </div>
+                <form th:action="@{/fees/payments}" method="post" class="form fee-payment-form" novalidate>
+                    <div class="form-group"><label>Hộ khẩu:</label> <select name="householdId"
+                                                                            class="fee-payment-household">
+                        <option value="">-- Chọn hộ khẩu --</option>
+                        <option th:each="household : ${households}" th:value="${household.id}"
+                                th:text="${household.householdCode + ' - Căn hộ ' + household.apartmentNumber}"></option>
+                    </select></div>
+                    <div class="form-group"><label>Loại phí:</label> <select name="feeTypeId" class="fee-payment-type">
+                        <option value="">-- Chọn loại phí --</option>
+                        <option th:each="feeTypeItem : ${activeFeeTypes}" th:value="${feeTypeItem.id}"
+                                th:text="${feeTypeItem.name}"
+                                th:attr="data-cycle=${feeTypeItem.cycleType != null ? feeTypeItem.cycleType.name() : ''}"></option>
+                    </select></div>
+                    <div class="form-group"><label>Kỳ thu:</label> <input type="text" name="period"
+                                                                          class="fee-payment-period"
+                                                                          placeholder="VD: 06/2026 hoặc 2026"> <small
+                            class="form-hint">Phí tháng dùng MM/yyyy, phí năm dùng yyyy.</small></div>
+                    <div class="form-group"><label>Số tiền:</label> <input type="number" name="amount"
+                                                                           class="fee-payment-amount"
+                                                                           placeholder="VD: 300000" min="1" step="1000">
+                        <small class="form-hint">Với phí cố định/theo diện tích, hệ thống sẽ tự tính lại theo cấu hình
+                            loại phí.</small></div>
+                    <div class="form-group"><label>Hạn đóng:</label> <input type="text" name="dueDate"
+                                                                            class="fee-payment-due-date"
+                                                                            placeholder="dd/MM/yyyy" maxlength="10"
+                                                                            inputmode="numeric" autocomplete="off">
+                    </div>
+                    <div class="form-group"><label>Ghi chú:</label> <textarea name="note" class="fee-payment-note"
+                                                                              rows="3"
+                                                                              placeholder="Nhập ghi chú nếu có..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn" onclick="closeFeeModal(this)">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div> <!-- MODAL CHI TIẾT + SỬA PHIẾU THU -->
+        <div th:each="payment : ${payments}">
+            <div class="modal-overlay fee-modal" th:id="'fee-payment-detail-modal-' + ${payment.id}">
+                <div class="fee-detail-box">
+                    <button type="button" class="modal-close" onclick="closeFeeModal(this)">×</button>
+                    <h2>Chi tiết phiếu thu</h2>
+                    <div class="resident-info"><p><span>ID:</span> <span th:text="${payment.id}"></span></p>
+                        <p><span>Hộ khẩu:</span> <span th:text="${payment.householdCode}"></span></p>
+                        <p><span>Căn hộ:</span> <span th:text="${payment.apartmentNumber}"></span></p>
+                        <p><span>Chủ hộ:</span> <span th:text="${payment.headResidentName}"></span></p>
+                        <p><span>Loại phí:</span> <span th:text="${payment.feeTypeName}"></span></p>
+                        <p><span>Nhóm phí:</span> <span
+                                th:text="${payment.feeGroup != null ? payment.feeGroup.displayName : ''}"></span></p>
+                        <p><span>Chu kỳ:</span> <span
+                                th:text="${payment.cycleType != null ? payment.cycleType.displayName : ''}"></span></p>
+                        <p><span>Cách tính:</span> <span
+                                th:text="${payment.calculationType != null ? payment.calculationType.displayName : ''}"></span>
+                        </p>
+                        <p><span>Kỳ thu:</span> <span th:text="${payment.period}"></span></p>
+                        <p><span>Số tiền:</span> <span
+                                th:text="${payment.amount != null ? #numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + ' đ' : ''}"></span>
+                        </p>
+                        <p><span>Hạn đóng:</span> <span
+                                th:text="${payment.dueDate != null ? #temporals.format(payment.dueDate, 'dd/MM/yyyy') : ''}"></span>
+                        </p>
+                        <p><span>Ngày thanh toán:</span> <span
+                                th:text="${payment.paidDate != null ? #temporals.format(payment.paidDate, 'dd/MM/yyyy') : 'Chưa thanh toán'}"></span>
+                        </p>
+                        <p><span>Trạng thái:</span> <span
+                                th:text="${payment.status != null ? payment.status.displayName : ''}"></span></p>
+                        <p><span>Ghi chú:</span> <span th:text="${payment.note}"></span></p></div>
+                    <div class="modal-actions">
+                        <button type="button" class="modal-edit-btn"
+                                th:attr="data-modal-id='fee-payment-edit-modal-' + ${payment.id}"
+                                onclick="switchFeeModal(this)"> Sửa
+                        </button>
+                        <button type="button" class="modal-cancel-btn" onclick="closeFeeModal(this)"> Đóng</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-overlay fee-modal" th:id="'fee-payment-edit-modal-' + ${payment.id}"
+                 th:classappend="${feePaymentEditErrorId != null and feePaymentEditErrorId == payment.id} ? ' show' : ''">
+                <div class="fee-edit-box">
+                    <button type="button" class="modal-close" onclick="closeFeeModal(this)">×</button>
+                    <h2>Cập nhật phiếu thu</h2>
+                    <div class="form-error-box d-none fee-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul class="fee-error-list"></ul>
+                    </div>
+                    <div th:if="${feePaymentEditErrorId != null and feePaymentEditErrorId == payment.id and modalErrorMessage != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:text="${modalErrorMessage}"></li>
+                        </ul>
+                    </div>
+                    <div th:if="${feePaymentEditErrorId != null and feePaymentEditErrorId == payment.id and validationErrors != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:each="error : ${validationErrors}" th:text="${error}"></li>
+                        </ul>
+                    </div>
+                    <form th:action="@{/fees/payments/{id}/update(id=${payment.id})}" method="post"
+                          class="form fee-payment-form" novalidate>
+                        <div class="form-group"><label>Hộ khẩu:</label> <select name="householdId"
+                                                                                class="fee-payment-household">
+                            <option value="">-- Chọn hộ khẩu --</option>
+                            <option th:each="household : ${households}" th:value="${household.id}"
+                                    th:text="${household.householdCode + ' - Căn hộ ' + household.apartmentNumber}"
+                                    th:selected="${payment.householdId != null and household.id == payment.householdId}"></option>
+                        </select></div>
+                        <div class="form-group"><label>Loại phí:</label> <select name="feeTypeId"
+                                                                                 class="fee-payment-type">
+                            <option value="">-- Chọn loại phí --</option>
+                            <option th:each="feeTypeItem : ${activeFeeTypes}" th:value="${feeTypeItem.id}"
+                                    th:text="${feeTypeItem.name}"
+                                    th:selected="${payment.feeTypeId != null and feeTypeItem.id == payment.feeTypeId}"
+                                    th:attr="data-cycle=${feeTypeItem.cycleType != null ? feeTypeItem.cycleType.name() : ''}"></option>
+                        </select></div>
+                        <div class="form-group"><label>Kỳ thu:</label> <input type="text" name="period"
+                                                                              class="fee-payment-period"
+                                                                              th:value="${payment.period}"></div>
+                        <div class="form-group"><label>Số tiền:</label> <input type="number" name="amount"
+                                                                               class="fee-payment-amount" min="1"
+                                                                               step="1000" th:value="${payment.amount}">
+                        </div>
+                        <div class="form-group"><label>Hạn đóng:</label> <input type="text" name="dueDate"
+                                                                                class="fee-payment-due-date"
+                                                                                placeholder="dd/MM/yyyy" maxlength="10"
+                                                                                inputmode="numeric" autocomplete="off"
+                                                                                th:value="${payment.dueDate != null ? #temporals.format(payment.dueDate, 'dd/MM/yyyy') : ''}">
+                        </div>
+                        <div class="form-group"><label>Ghi chú:</label> <textarea name="note" class="fee-payment-note"
+                                                                                  rows="3"
+                                                                                  th:text="${payment.note}"> </textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn" onclick="closeFeeModal(this)">Hủy</button>
+                            <button type="submit" class="btn btn-primary">Cập nhật</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+<script th:inline="javascript"> function openFeeModal(button) {
+    const modalId = button.getAttribute("data-modal-id");
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add("show");
+    }
+}
+
+function closeFeeModal(element) {
+    const modal = element.closest(".fee-modal");
+    if (modal) {
+        modal.classList.remove("show");
+        modal.querySelectorAll(".input-error").forEach(function (input) {
+            input.classList.remove("input-error");
+        });
+        modal.querySelectorAll(".fee-error-box").forEach(function (box) {
+            box.classList.add("d-none");
+        });
+        modal.querySelectorAll(".fee-error-list").forEach(function (list) {
+            list.innerHTML = "";
+        });
+    }
+}
+
+function switchFeeModal(button) {
+    const currentModal = button.closest(".fee-modal");
+    const targetModalId = button.getAttribute("data-modal-id");
+    const targetModal = document.getElementById(targetModalId);
+    if (currentModal) {
+        currentModal.classList.remove("show");
+    }
+    if (targetModal) {
+        targetModal.classList.add("show");
+    }
+}
+
+function showFeeErrors(form, errors) {
+    const modal = form.closest(".fee-modal");
+    const errorBox = modal.querySelector(".fee-error-box");
+    const errorList = modal.querySelector(".fee-error-list");
+    errorList.innerHTML = "";
+    errors.forEach(function (error) {
+        const li = document.createElement("li");
+        li.textContent = error;
+        errorList.appendChild(li);
+    });
+    errorBox.classList.remove("d-none");
+}
+
+function formatDateInput(value) {
+    let digits = value.replace(/\D/g, "").slice(0, 8);
+    if (digits.length > 4) {
+        return digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+    }
+    if (digits.length > 2) {
+        return digits.slice(0, 2) + "/" + digits.slice(2);
+    }
+    return digits;
+}
+
+function isValidDateVN(value) {
+    const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/[0-9]{4}$/;
+    if (!regex.test(value)) {
+        return false;
+    }
+    const parts = value.split("/");
+    const day = Number(parts[0]);
+    const month = Number(parts[1]);
+    const year = Number(parts[2]);
+    const date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+function isPositiveNumber(value) {
+    if (!value.trim()) {
+        return false;
+    }
+    const number = Number(value);
+    return !Number.isNaN(number) && number > 0;
+}
+
+function isValidMonthlyPeriod(value) {
+    return /^(0[1-9]|1[0-2])\/[0-9]{4}$/.test(value);
+}
+
+function isValidYearlyPeriod(value) {
+    return /^[0-9]{4}$/.test(value);
+}
+
+document.querySelectorAll(".fee-payment-due-date").forEach(function (input) {
+    input.addEventListener("input", function () {
+        this.value = formatDateInput(this.value);
+    });
+});
+document.querySelectorAll(".fee-type-form").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+        const errors = [];
+        const name = form.querySelector(".fee-type-name");
+        const group = form.querySelector(".fee-type-group");
+        const cycle = form.querySelector(".fee-type-cycle");
+        const calculation = form.querySelector(".fee-type-calculation");
+        const unitPrice = form.querySelector(".fee-type-unit-price");
+        const active = form.querySelector(".fee-type-active");
+        form.querySelectorAll(".input-error").forEach(function (input) {
+            input.classList.remove("input-error");
+        });
+        if (!name.value.trim()) {
+            errors.push("Tên loại phí không được để trống.");
+            name.classList.add("input-error");
+        }
+        if (!group.value.trim()) {
+            errors.push("Nhóm phí không được để trống.");
+            group.classList.add("input-error");
+        }
+        if (!cycle.value.trim()) {
+            errors.push("Chu kỳ thu không được để trống.");
+            cycle.classList.add("input-error");
+        }
+        if (!calculation.value.trim()) {
+            errors.push("Cách tính phí không được để trống.");
+            calculation.classList.add("input-error");
+        }
+        if (!unitPrice.value.trim()) {
+            errors.push("Đơn giá không được để trống.");
+            unitPrice.classList.add("input-error");
+        } else if (!isPositiveNumber(unitPrice.value.trim())) {
+            errors.push("Đơn giá phải lớn hơn 0.");
+            unitPrice.classList.add("input-error");
+        }
+        if (!active.value.trim()) {
+            errors.push("Trạng thái áp dụng không được để trống.");
+            active.classList.add("input-error");
+        }
+        if (group.value === "ANNUAL" && cycle.value === "ONE_TIME") {
+            errors.push("Phí thường niên phải chọn chu kỳ theo tháng hoặc theo năm.");
+            cycle.classList.add("input-error");
+        }
+        if (group.value === "ARISING" && cycle.value !== "ONE_TIME") {
+            errors.push("Phí phát sinh phải có chu kỳ không lặp.");
+            cycle.classList.add("input-error");
+        }
+        if (errors.length > 0) {
+            event.preventDefault();
+            showFeeErrors(form, errors);
+        }
+    });
+});
+document.querySelectorAll(".fee-payment-form").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+        const errors = [];
+        const household = form.querySelector(".fee-payment-household");
+        const feeType = form.querySelector(".fee-payment-type");
+        const period = form.querySelector(".fee-payment-period");
+        const amount = form.querySelector(".fee-payment-amount");
+        const dueDate = form.querySelector(".fee-payment-due-date");
+        form.querySelectorAll(".input-error").forEach(function (input) {
+            input.classList.remove("input-error");
+        });
+        if (!household.value.trim()) {
+            errors.push("Hộ khẩu không được để trống.");
+            household.classList.add("input-error");
+        }
+        if (!feeType.value.trim()) {
+            errors.push("Loại phí không được để trống.");
+            feeType.classList.add("input-error");
+        }
+        if (!period.value.trim()) {
+            errors.push("Kỳ thu không được để trống.");
+            period.classList.add("input-error");
+        } else {
+            const selectedOption = feeType.options[feeType.selectedIndex];
+            const cycle = selectedOption ? selectedOption.getAttribute("data-cycle") : "";
+            if (cycle === "MONTHLY" && !isValidMonthlyPeriod(period.value.trim())) {
+                errors.push("Kỳ thu của phí theo tháng phải có dạng MM/yyyy, ví dụ 06/2026.");
+                period.classList.add("input-error");
+            }
+            if (cycle === "YEARLY" && !isValidYearlyPeriod(period.value.trim())) {
+                errors.push("Kỳ thu của phí theo năm phải có dạng yyyy, ví dụ 2026.");
+                period.classList.add("input-error");
+            }
+        }
+        if (!amount.value.trim()) {
+            errors.push("Số tiền không được để trống.");
+            amount.classList.add("input-error");
+        } else if (!isPositiveNumber(amount.value.trim())) {
+            errors.push("Số tiền phải lớn hơn 0.");
+            amount.classList.add("input-error");
+        }
+        if (!dueDate.value.trim()) {
+            errors.push("Hạn đóng không được để trống.");
+            dueDate.classList.add("input-error");
+        } else if (!isValidDateVN(dueDate.value.trim())) {
+            errors.push("Hạn đóng không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy.");
+            dueDate.classList.add("input-error");
+        }
+        if (errors.length > 0) {
+            event.preventDefault();
+            showFeeErrors(form, errors);
+        }
+    });
+});
+document.addEventListener("click", function (event) {
+    if (event.target.classList.contains("fee-modal")) {
+        event.target.classList.remove("show");
+    }
+});
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        document.querySelectorAll(".fee-modal.show").forEach(function (modal) {
+            modal.classList.remove("show");
+        });
+    }
+}); </script>
+</body>
+</html>

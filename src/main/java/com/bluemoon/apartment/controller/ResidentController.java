@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import java.time.format.DateTimeFormatter;
 
 import java.util.List;
 
@@ -90,13 +91,44 @@ public class ResidentController {
 
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
-        model.addAttribute("resident", residentService.getResidentById(id));
+        ResidentResponse residentResponse = residentService.getResidentById(id);
+
+        ResidentRequest residentRequest = new ResidentRequest();
+        residentRequest.setFullName(residentResponse.getFullName());
+        residentRequest.setCitizenId(residentResponse.getCitizenId());
+        residentRequest.setPhoneNumber(residentResponse.getPhoneNumber());
+        residentRequest.setGender(residentResponse.getGender());
+        residentRequest.setDateOfBirth(residentResponse.getDateOfBirth());
+        residentRequest.setStatus(
+                residentResponse.getStatus() != null
+                        ? residentResponse.getStatus().name()
+                        : null
+        );
+
+        model.addAttribute("resident", residentRequest);
+        model.addAttribute("residentId", id);
+
         return "resident/update";
     }
 
     @PostMapping("/{id}/update")
-    public String updateResident(@PathVariable Long id, @ModelAttribute ResidentRequest residentRequest) {
+    public String updateResident(@PathVariable Long id,
+                                 @Valid @ModelAttribute("resident") ResidentRequest residentRequest,
+                                 BindingResult bindingResult,
+                                 Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("residentId", id);
+            model.addAttribute("validationErrors", bindingResult.getFieldErrors()
+                    .stream()
+                    .map(this::getResidentErrorMessage)
+                    .distinct()
+                    .toList());
+
+            return "resident/update";
+        }
+
         residentService.updateResident(id, residentRequest);
+
         return "redirect:/residents";
     }
 

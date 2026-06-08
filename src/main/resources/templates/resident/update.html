@@ -15,38 +15,85 @@
     <main class="content">
         <h1>Cập nhật thông tin nhân khẩu</h1>
 
-        <form th:action="@{/residents/{id}/update(id=${resident.id})}" th:object="${resident}" method="post" class="form">
+        <div id="editErrorBox"
+             class="form-error-box"
+             th:classappend="${validationErrors == null or #lists.isEmpty(validationErrors)} ? ' d-none' : ''">
+            <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+
+            <ul id="editErrorList">
+                <li th:each="error : ${validationErrors}"
+                    th:text="${error}">
+                </li>
+            </ul>
+        </div>
+
+        <form id="residentUpdateForm"
+              th:action="@{/residents/{id}/update(id=${residentId})}"
+              th:object="${resident}"
+              method="post"
+              class="form"
+              novalidate>
+
             <div class="form-group">
                 <label>Họ và tên:</label>
-                <input type="text" th:field="*{fullName}" required>
+                <input type="text"
+                       id="fullName"
+                       th:field="*{fullName}"
+                       th:classappend="${#fields.hasErrors('fullName')} ? ' input-error' : ''">
             </div>
+
             <div class="form-group">
                 <label>CCCD/CMND:</label>
-                <input type="text" th:field="*{citizenId}">
+                <input type="text"
+                       id="citizenId"
+                       th:field="*{citizenId}"
+                       th:classappend="${#fields.hasErrors('citizenId')} ? ' input-error' : ''">
             </div>
+
             <div class="form-group">
                 <label>Số điện thoại:</label>
-                <input type="text" th:field="*{phoneNumber}">
+                <input type="text"
+                       id="phoneNumber"
+                       th:field="*{phoneNumber}"
+                       th:classappend="${#fields.hasErrors('phoneNumber')} ? ' input-error' : ''">
             </div>
+
             <div class="form-group">
                 <label>Giới tính:</label>
-                <select th:field="*{gender}">
+                <select id="gender"
+                        th:field="*{gender}"
+                        th:classappend="${#fields.hasErrors('gender')} ? ' input-error' : ''">
+                    <option value="">-- Chọn giới tính --</option>
                     <option value="Nam">Nam</option>
                     <option value="Nữ">Nữ</option>
                     <option value="Khác">Khác</option>
                 </select>
             </div>
+
             <div class="form-group">
                 <label>Ngày sinh:</label>
-                <input type="date" th:field="*{dateOfBirth}">
+                <input type="text"
+                       id="dateOfBirth"
+                       th:field="*{dateOfBirth}"
+                       placeholder="dd/MM/yyyy"
+                       maxlength="10"
+                       title="Nhập ngày sinh theo định dạng dd/MM/yyyy"
+                       th:classappend="${#fields.hasErrors('dateOfBirth')} ? ' input-error' : ''">
             </div>
+
             <div class="form-group">
                 <label>Trạng thái:</label>
-                <select th:field="*{status}">
+                <select id="status"
+                        th:field="*{status}"
+                        th:classappend="${#fields.hasErrors('status')} ? ' input-error' : ''">
+                    <option value="">-- Chọn trạng thái --</option>
                     <option th:each="s : ${T(com.bluemoon.apartment.constant.ResidentStatus).values()}"
-                            th:value="${s}" th:text="${s}"></option>
+                            th:value="${s.name()}"
+                            th:text="${s.displayName}">
+                    </option>
                 </select>
             </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Cập nhật</button>
                 <a th:href="@{/residents}" class="btn">Hủy</a>
@@ -56,6 +103,114 @@
 
     <div th:replace="~{layout/footer :: footer}"></div>
 </div>
+
+<script>
+    const updateForm = document.getElementById("residentUpdateForm");
+    const errorBox = document.getElementById("editErrorBox");
+    const errorList = document.getElementById("editErrorList");
+    const dateInput = document.getElementById("dateOfBirth");
+
+    function showErrors(errors) {
+        errorList.innerHTML = "";
+
+        errors.forEach(function (error) {
+            const li = document.createElement("li");
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+
+        errorBox.classList.remove("d-none");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function isValidDateVN(value) {
+        const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/[0-9]{4}$/;
+
+        if (!regex.test(value)) {
+            return false;
+        }
+
+        const parts = value.split("/");
+        const day = Number(parts[0]);
+        const month = Number(parts[1]);
+        const year = Number(parts[2]);
+
+        const date = new Date(year, month - 1, day);
+
+        return date.getFullYear() === year
+            && date.getMonth() === month - 1
+            && date.getDate() === day;
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener("input", function () {
+            let value = this.value.replace(/\D/g, "");
+
+            if (value.length > 2) {
+                value = value.slice(0, 2) + "/" + value.slice(2);
+            }
+
+            if (value.length > 5) {
+                value = value.slice(0, 5) + "/" + value.slice(5, 9);
+            }
+
+            this.value = value;
+        });
+    }
+
+    updateForm.addEventListener("submit", function (event) {
+        const errors = [];
+
+        const fullName = document.getElementById("fullName").value.trim();
+        const citizenId = document.getElementById("citizenId").value.trim();
+        const phoneNumber = document.getElementById("phoneNumber").value.trim();
+        const gender = document.getElementById("gender").value.trim();
+        const dateOfBirth = document.getElementById("dateOfBirth").value.trim();
+        const status = document.getElementById("status").value.trim();
+
+        document.querySelectorAll(".input-error").forEach(function (input) {
+            input.classList.remove("input-error");
+        });
+
+        if (!fullName) {
+            errors.push("Họ và tên không được để trống.");
+            document.getElementById("fullName").classList.add("input-error");
+        }
+
+        if (!citizenId) {
+            errors.push("CCCD/CMND không được để trống.");
+            document.getElementById("citizenId").classList.add("input-error");
+        }
+
+        if (!phoneNumber) {
+            errors.push("Số điện thoại không được để trống.");
+            document.getElementById("phoneNumber").classList.add("input-error");
+        }
+
+        if (!gender) {
+            errors.push("Giới tính không được để trống.");
+            document.getElementById("gender").classList.add("input-error");
+        }
+
+        if (!dateOfBirth) {
+            errors.push("Ngày sinh không được để trống.");
+            document.getElementById("dateOfBirth").classList.add("input-error");
+        } else if (!isValidDateVN(dateOfBirth)) {
+            errors.push("Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng dd/MM/yyyy, ví dụ 08/06/2026.");
+            document.getElementById("dateOfBirth").classList.add("input-error");
+        }
+
+        if (!status) {
+            errors.push("Trạng thái không được để trống.");
+            document.getElementById("status").classList.add("input-error");
+        }
+
+        if (errors.length > 0) {
+            event.preventDefault();
+            showErrors(errors);
+        }
+    });
+</script>
 
 </body>
 </html>

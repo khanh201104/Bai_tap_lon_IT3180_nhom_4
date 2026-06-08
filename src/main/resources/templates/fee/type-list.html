@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý loại phí - Bluemoon</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="content">
+        <div class="header-actions">
+            <div>
+                <h1>Quản lý loại phí</h1>
+                <p class="page-subtitle">Cấu hình các loại phí thường niên và phí phát sinh</p>
+            </div>
+
+            <div class="header-button-group">
+                <button type="button"
+                        class="btn btn-primary"
+                        data-modal-id="fee-type-create-modal"
+                        onclick="openFeeModal(this)">
+                    Thêm loại phí
+                </button>
+
+                <a th:href="@{/fees}" class="btn btn-outline">
+                    Quay lại phiếu thu
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${feeTypeDeleteError != null}" class="form-error-box">
+            <div class="form-error-title">Không thể xóa loại phí</div>
+            <ul>
+                <li th:text="${feeTypeDeleteError}"></li>
+            </ul>
+        </div>
+
+        <div class="search-box">
+            <form th:action="@{/fees/types}" method="get">
+                <input type="text"
+                       name="keyword"
+                       placeholder="Tìm kiếm theo tên loại phí..."
+                       th:value="${keyword}">
+                <button type="submit" class="btn">Tìm kiếm</button>
+            </form>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên loại phí</th>
+                <th>Nhóm phí</th>
+                <th>Chu kỳ</th>
+                <th>Cách tính</th>
+                <th>Đơn giá</th>
+                <th>Áp dụng</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="feeTypeItem : ${feeTypes}">
+                <td th:text="${feeTypeItem.id}"></td>
+
+                <td th:text="${feeTypeItem.name}"></td>
+
+                <td th:text="${feeTypeItem.feeGroup != null ? feeTypeItem.feeGroup.displayName : ''}"></td>
+
+                <td th:text="${feeTypeItem.cycleType != null ? feeTypeItem.cycleType.displayName : ''}"></td>
+
+                <td th:text="${feeTypeItem.calculationType != null ? feeTypeItem.calculationType.displayName : ''}"></td>
+
+                <td th:text="${feeTypeItem.unitPrice != null ? #numbers.formatDecimal(feeTypeItem.unitPrice, 0, 'COMMA', 0, 'POINT') + ' đ' : ''}"></td>
+
+                <td th:text="${feeTypeItem.active != null and feeTypeItem.active ? 'Đang áp dụng' : 'Ngừng áp dụng'}"></td>
+
+                <td>
+                    <div class="action-buttons">
+                        <button type="button"
+                                class="action-btn action-detail"
+                                th:attr="data-modal-id='fee-type-detail-modal-' + ${feeTypeItem.id}"
+                                onclick="openFeeModal(this)">
+                            Chi tiết
+                        </button>
+
+                        <button type="button"
+                                class="action-btn action-edit"
+                                th:attr="data-modal-id='fee-type-edit-modal-' + ${feeTypeItem.id}"
+                                onclick="openFeeModal(this)">
+                            Sửa
+                        </button>
+
+                        <form th:action="@{/fees/types/{id}/delete(id=${feeTypeItem.id})}"
+                              method="post"
+                              class="action-form"
+                              onsubmit="return confirm('Bạn có chắc muốn xóa loại phí này không?');">
+                            <button type="submit" class="action-btn action-delete">
+                                Xóa
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(feeTypes)}">
+                <td colspan="8" class="empty-row">
+                    Chưa có loại phí nào
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- MODAL THÊM LOẠI PHÍ -->
+        <div class="modal-overlay fee-modal"
+             id="fee-type-create-modal"
+             th:classappend="${feeTypeCreateOpen != null and feeTypeCreateOpen} ? ' show' : ''">
+            <div class="fee-edit-box">
+                <button type="button" class="modal-close" onclick="closeFeeModal(this)">×</button>
+
+                <h2>Thêm loại phí</h2>
+
+                <div class="form-error-box d-none fee-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul class="fee-error-list"></ul>
+                </div>
+
+                <div th:if="${feeTypeCreateOpen != null and feeTypeCreateOpen and modalErrorMessage != null}"
+                     class="form-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul>
+                        <li th:text="${modalErrorMessage}"></li>
+                    </ul>
+                </div>
+
+                <div th:if="${feeTypeCreateOpen != null and feeTypeCreateOpen and validationErrors != null}"
+                     class="form-error-box">
+                    <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                    <ul>
+                        <li th:each="error : ${validationErrors}"
+                            th:text="${error}">
+                        </li>
+                    </ul>
+                </div>
+
+                <form th:action="@{/fees/types}"
+                      method="post"
+                      class="form fee-type-form"
+                      novalidate>
+
+                    <div class="form-group">
+                        <label>Tên loại phí:</label>
+                        <input type="text"
+                               name="name"
+                               class="fee-type-name"
+                               placeholder="VD: Phí quản lý">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nhóm phí:</label>
+                        <select name="feeGroup" class="fee-type-group">
+                            <option value="">-- Chọn nhóm phí --</option>
+                            <option th:each="group : ${T(com.bluemoon.apartment.constant.FeeGroup).values()}"
+                                    th:value="${group.name()}"
+                                    th:text="${group.displayName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Chu kỳ thu:</label>
+                        <select name="cycleType" class="fee-type-cycle">
+                            <option value="">-- Chọn chu kỳ --</option>
+                            <option th:each="cycle : ${T(com.bluemoon.apartment.constant.FeeCycleType).values()}"
+                                    th:value="${cycle.name()}"
+                                    th:text="${cycle.displayName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cách tính phí:</label>
+                        <select name="calculationType" class="fee-type-calculation">
+                            <option value="">-- Chọn cách tính --</option>
+                            <option th:each="calculation : ${T(com.bluemoon.apartment.constant.FeeCalculationType).values()}"
+                                    th:value="${calculation.name()}"
+                                    th:text="${calculation.displayName}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Đơn giá:</label>
+                        <input type="number"
+                               name="unitPrice"
+                               class="fee-type-unit-price"
+                               placeholder="VD: 10000"
+                               min="1"
+                               step="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trạng thái áp dụng:</label>
+                        <select name="active" class="fee-type-active">
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="true">Đang áp dụng</option>
+                            <option value="false">Ngừng áp dụng</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả:</label>
+                        <textarea name="description"
+                                  class="fee-type-description"
+                                  rows="3"
+                                  placeholder="Nhập mô tả nếu có..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button"
+                                class="btn"
+                                onclick="closeFeeModal(this)">
+                            Hủy
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL CHI TIẾT + SỬA LOẠI PHÍ -->
+        <div th:each="feeTypeItem : ${feeTypes}">
+
+            <!-- MODAL CHI TIẾT -->
+            <div class="modal-overlay fee-modal"
+                 th:id="'fee-type-detail-modal-' + ${feeTypeItem.id}">
+                <div class="fee-detail-box">
+                    <button type="button" class="modal-close" onclick="closeFeeModal(this)">×</button>
+
+                    <h2>Chi tiết loại phí</h2>
+
+                    <div class="resident-info">
+                        <p>
+                            <span>ID:</span>
+                            <span th:text="${feeTypeItem.id}"></span>
+                        </p>
+
+                        <p>
+                            <span>Tên loại phí:</span>
+                            <span th:text="${feeTypeItem.name}"></span>
+                        </p>
+
+                        <p>
+                            <span>Nhóm phí:</span>
+                            <span th:text="${feeTypeItem.feeGroup != null ? feeTypeItem.feeGroup.displayName : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Chu kỳ:</span>
+                            <span th:text="${feeTypeItem.cycleType != null ? feeTypeItem.cycleType.displayName : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Cách tính:</span>
+                            <span th:text="${feeTypeItem.calculationType != null ? feeTypeItem.calculationType.displayName : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Đơn giá:</span>
+                            <span th:text="${feeTypeItem.unitPrice != null ? #numbers.formatDecimal(feeTypeItem.unitPrice, 0, 'COMMA', 0, 'POINT') + ' đ' : ''}"></span>
+                        </p>
+
+                        <p>
+                            <span>Trạng thái:</span>
+                            <span th:text="${feeTypeItem.active != null and feeTypeItem.active ? 'Đang áp dụng' : 'Ngừng áp dụng'}"></span>
+                        </p>
+
+                        <p>
+                            <span>Mô tả:</span>
+                            <span th:text="${feeTypeItem.description}"></span>
+                        </p>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button"
+                                class="modal-edit-btn"
+                                th:attr="data-modal-id='fee-type-edit-modal-' + ${feeTypeItem.id}"
+                                onclick="switchFeeModal(this)">
+                            Sửa
+                        </button>
+
+                        <button type="button"
+                                class="modal-cancel-btn"
+                                onclick="closeFeeModal(this)">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL SỬA -->
+            <div class="modal-overlay fee-modal"
+                 th:id="'fee-type-edit-modal-' + ${feeTypeItem.id}"
+                 th:classappend="${feeTypeEditErrorId != null and feeTypeEditErrorId == feeTypeItem.id} ? ' show' : ''">
+                <div class="fee-edit-box">
+                    <button type="button" class="modal-close" onclick="closeFeeModal(this)">×</button>
+
+                    <h2>Cập nhật loại phí</h2>
+
+                    <div class="form-error-box d-none fee-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul class="fee-error-list"></ul>
+                    </div>
+
+                    <div th:if="${feeTypeEditErrorId != null and feeTypeEditErrorId == feeTypeItem.id and modalErrorMessage != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:text="${modalErrorMessage}"></li>
+                        </ul>
+                    </div>
+
+                    <div th:if="${feeTypeEditErrorId != null and feeTypeEditErrorId == feeTypeItem.id and validationErrors != null}"
+                         class="form-error-box">
+                        <div class="form-error-title">Vui lòng kiểm tra lại thông tin</div>
+                        <ul>
+                            <li th:each="error : ${validationErrors}"
+                                th:text="${error}">
+                            </li>
+                        </ul>
+                    </div>
+
+                    <form th:action="@{/fees/types/{id}/update(id=${feeTypeItem.id})}"
+                          method="post"
+                          class="form fee-type-form"
+                          novalidate>
+
+                        <div class="form-group">
+                            <label>Tên loại phí:</label>
+                            <input type="text"
+                                   name="name"
+                                   class="fee-type-name"
+                                   th:value="${feeTypeItem.name}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nhóm phí:</label>
+                            <select name="feeGroup" class="fee-type-group">
+                                <option value="">-- Chọn nhóm phí --</option>
+                                <option th:each="group : ${T(com.bluemoon.apartment.constant.FeeGroup).values()}"
+                                        th:value="${group.name()}"
+                                        th:text="${group.displayName}"
+                                        th:selected="${feeTypeItem.feeGroup != null and group.name() == feeTypeItem.feeGroup.name()}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chu kỳ thu:</label>
+                            <select name="cycleType" class="fee-type-cycle">
+                                <option value="">-- Chọn chu kỳ --</option>
+                                <option th:each="cycle : ${T(com.bluemoon.apartment.constant.FeeCycleType).values()}"
+                                        th:value="${cycle.name()}"
+                                        th:text="${cycle.displayName}"
+                                        th:selected="${feeTypeItem.cycleType != null and cycle.name() == feeTypeItem.cycleType.name()}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Cách tính phí:</label>
+                            <select name="calculationType" class="fee-type-calculation">
+                                <option value="">-- Chọn cách tính --</option>
+                                <option th:each="calculation : ${T(com.bluemoon.apartment.constant.FeeCalculationType).values()}"
+                                        th:value="${calculation.name()}"
+                                        th:text="${calculation.displayName}"
+                                        th:selected="${feeTypeItem.calculationType != null and calculation.name() == feeTypeItem.calculationType.name()}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Đơn giá:</label>
+                            <input type="number"
+                                   name="unitPrice"
+                                   class="fee-type-unit-price"
+                                   min="1"
+                                   step="1000"
+                                   th:value="${feeTypeItem.unitPrice}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Trạng thái áp dụng:</label>
+                            <select name="active" class="fee-type-active">
+                                <option value="">-- Chọn trạng thái --</option>
+                                <option value="true"
+                                        th:selected="${feeTypeItem.active != null and feeTypeItem.active}">
+                                    Đang áp dụng
+                                </option>
+                                <option value="false"
+                                        th:selected="${feeTypeItem.active != null and !feeTypeItem.active}">
+                                    Ngừng áp dụng
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Mô tả:</label>
+                            <textarea name="description"
+                                      class="fee-type-description"
+                                      rows="3"
+                                      th:text="${feeTypeItem.description}">
+                            </textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button"
+                                    class="btn"
+                                    onclick="closeFeeModal(this)">
+                                Hủy
+                            </button>
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+                                Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+
+<script>
+    function openFeeModal(button) {
+        const modalId = button.getAttribute("data-modal-id");
+        const modal = document.getElementById(modalId);
+
+        if (modal) {
+            modal.classList.add("show");
+        }
+    }
+
+    function closeFeeModal(element) {
+        const modal = element.closest(".fee-modal");
+
+        if (modal) {
+            modal.classList.remove("show");
+
+            modal.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+
+            modal.querySelectorAll(".fee-error-box").forEach(function (box) {
+                box.classList.add("d-none");
+            });
+
+            modal.querySelectorAll(".fee-error-list").forEach(function (list) {
+                list.innerHTML = "";
+            });
+        }
+    }
+
+    function switchFeeModal(button) {
+        const currentModal = button.closest(".fee-modal");
+        const targetModalId = button.getAttribute("data-modal-id");
+        const targetModal = document.getElementById(targetModalId);
+
+        if (currentModal) {
+            currentModal.classList.remove("show");
+        }
+
+        if (targetModal) {
+            targetModal.classList.add("show");
+        }
+    }
+
+    function showFeeErrors(form, errors) {
+        const modal = form.closest(".fee-modal");
+        const errorBox = modal.querySelector(".fee-error-box");
+        const errorList = modal.querySelector(".fee-error-list");
+
+        errorList.innerHTML = "";
+
+        errors.forEach(function (error) {
+            const li = document.createElement("li");
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+
+        errorBox.classList.remove("d-none");
+    }
+
+    function isPositiveNumber(value) {
+        const number = Number(value);
+        return value.trim() !== "" && !Number.isNaN(number) && number > 0;
+    }
+
+    document.querySelectorAll(".fee-type-form").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            const errors = [];
+
+            const name = form.querySelector(".fee-type-name");
+            const group = form.querySelector(".fee-type-group");
+            const cycle = form.querySelector(".fee-type-cycle");
+            const calculation = form.querySelector(".fee-type-calculation");
+            const unitPrice = form.querySelector(".fee-type-unit-price");
+            const active = form.querySelector(".fee-type-active");
+
+            form.querySelectorAll(".input-error").forEach(function (input) {
+                input.classList.remove("input-error");
+            });
+
+            if (!name.value.trim()) {
+                errors.push("Tên loại phí không được để trống.");
+                name.classList.add("input-error");
+            }
+
+            if (!group.value.trim()) {
+                errors.push("Nhóm phí không được để trống.");
+                group.classList.add("input-error");
+            }
+
+            if (!cycle.value.trim()) {
+                errors.push("Chu kỳ thu không được để trống.");
+                cycle.classList.add("input-error");
+            }
+
+            if (!calculation.value.trim()) {
+                errors.push("Cách tính phí không được để trống.");
+                calculation.classList.add("input-error");
+            }
+
+            if (!unitPrice.value.trim()) {
+                errors.push("Đơn giá không được để trống.");
+                unitPrice.classList.add("input-error");
+            } else if (!isPositiveNumber(unitPrice.value.trim())) {
+                errors.push("Đơn giá phải lớn hơn 0.");
+                unitPrice.classList.add("input-error");
+            }
+
+            if (!active.value.trim()) {
+                errors.push("Trạng thái áp dụng không được để trống.");
+                active.classList.add("input-error");
+            }
+
+            if (group.value === "ANNUAL" && cycle.value === "ONE_TIME") {
+                errors.push("Phí thường niên phải chọn chu kỳ theo tháng hoặc theo năm.");
+                cycle.classList.add("input-error");
+            }
+
+            if (group.value === "ARISING" && cycle.value !== "ONE_TIME") {
+                errors.push("Phí phát sinh phải có chu kỳ không lặp.");
+                cycle.classList.add("input-error");
+            }
+
+            if (errors.length > 0) {
+                event.preventDefault();
+                showFeeErrors(form, errors);
+            }
+        });
+    });
+
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("fee-modal")) {
+            event.target.classList.remove("show");
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            document.querySelectorAll(".fee-modal.show").forEach(function (modal) {
+                modal.classList.remove("show");
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
