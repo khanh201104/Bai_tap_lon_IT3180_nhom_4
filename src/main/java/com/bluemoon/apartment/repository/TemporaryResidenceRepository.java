@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface TemporaryResidenceRepository extends JpaRepository<TemporaryResidence, Long> {
+
     List<TemporaryResidence> findByResidentFullNameContainingIgnoreCase(String fullName);
 }

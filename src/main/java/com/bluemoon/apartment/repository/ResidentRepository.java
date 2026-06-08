@@ -8,6 +8,11 @@ import java.util.List;
 
 @Repository
 public interface ResidentRepository extends JpaRepository<Resident, Long> {
+
     List<Resident> findByFullNameContainingIgnoreCaseOrCitizenIdContainingOrPhoneNumberContaining(
-            String fullName, String citizenId, String phoneNumber);
+            String fullName,
+            String citizenId,
+            String phoneNumber
+    );
+    boolean existsByCitizenId(String citizenId);
 }

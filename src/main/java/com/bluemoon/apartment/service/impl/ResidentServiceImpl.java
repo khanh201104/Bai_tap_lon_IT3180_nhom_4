@@ -21,7 +21,8 @@ public class ResidentServiceImpl implements ResidentService {
 
     @Override
     public List<ResidentResponse> getAllResidents() {
-        return residentRepository.findAll().stream()
+        return residentRepository.findAll()
+                .stream()
                 .map(residentMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -34,6 +35,10 @@ public class ResidentServiceImpl implements ResidentService {
 
     @Override
     public ResidentResponse saveResident(ResidentRequest residentRequest) {
+        if (residentRepository.existsByCitizenId(residentRequest.getCitizenId())) {
+            throw new IllegalArgumentException("CCCD đã tồn tại");
+        }
+
         Resident resident = residentMapper.toEntity(residentRequest);
         Resident savedResident = residentRepository.save(resident);
         return residentMapper.toResponse(savedResident);
@@ -42,11 +47,13 @@ public class ResidentServiceImpl implements ResidentService {
     @Override
     public ResidentResponse updateResident(Long id, ResidentRequest residentRequest) {
         Resident resident = residentRepository.findById(id).orElse(null);
+
         if (resident != null) {
             residentMapper.updateEntity(resident, residentRequest);
             Resident updatedResident = residentRepository.save(resident);
             return residentMapper.toResponse(updatedResident);
         }
+
         return null;
     }
 
@@ -57,8 +64,13 @@ public class ResidentServiceImpl implements ResidentService {
 
     @Override
     public List<ResidentResponse> searchResidents(String keyword) {
-        return residentRepository.findByFullNameContainingIgnoreCaseOrCitizenIdContainingOrPhoneNumberContaining(
-                keyword, keyword, keyword).stream()
+        return residentRepository
+                .findByFullNameContainingIgnoreCaseOrCitizenIdContainingOrPhoneNumberContaining(
+                        keyword,
+                        keyword,
+                        keyword
+                )
+                .stream()
                 .map(residentMapper::toResponse)
                 .collect(Collectors.toList());
     }

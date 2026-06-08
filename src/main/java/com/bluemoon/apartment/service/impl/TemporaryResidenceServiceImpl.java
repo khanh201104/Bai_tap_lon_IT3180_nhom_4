@@ -24,7 +24,8 @@ public class TemporaryResidenceServiceImpl implements TemporaryResidenceService 
 
     @Override
     public List<TemporaryResidenceResponse> getAll() {
-        return temporaryResidenceRepository.findAll().stream()
+        return temporaryResidenceRepository.findAll()
+                .stream()
                 .map(temporaryResidenceMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -38,27 +39,34 @@ public class TemporaryResidenceServiceImpl implements TemporaryResidenceService 
     @Override
     public TemporaryResidenceResponse save(TemporaryResidenceRequest request) {
         Resident resident = residentRepository.findById(request.getResidentId()).orElse(null);
+
         if (resident != null) {
             TemporaryResidence entity = temporaryResidenceMapper.toEntity(request);
             entity.setResident(resident);
+
             TemporaryResidence savedEntity = temporaryResidenceRepository.save(entity);
             return temporaryResidenceMapper.toResponse(savedEntity);
         }
+
         return null;
     }
 
     @Override
     public TemporaryResidenceResponse update(Long id, TemporaryResidenceRequest request) {
         TemporaryResidence entity = temporaryResidenceRepository.findById(id).orElse(null);
+
         if (entity != null) {
             Resident resident = residentRepository.findById(request.getResidentId()).orElse(null);
+
             if (resident != null) {
                 temporaryResidenceMapper.updateEntity(entity, request);
                 entity.setResident(resident);
+
                 TemporaryResidence updatedEntity = temporaryResidenceRepository.save(entity);
                 return temporaryResidenceMapper.toResponse(updatedEntity);
             }
         }
+
         return null;
     }
 
@@ -69,7 +77,8 @@ public class TemporaryResidenceServiceImpl implements TemporaryResidenceService 
 
     @Override
     public List<TemporaryResidenceResponse> searchByResidentName(String name) {
-        return temporaryResidenceRepository.findByResidentFullNameContainingIgnoreCase(name).stream()
+        return temporaryResidenceRepository.findByResidentFullNameContainingIgnoreCase(name)
+                .stream()
                 .map(temporaryResidenceMapper::toResponse)
                 .collect(Collectors.toList());
     }
