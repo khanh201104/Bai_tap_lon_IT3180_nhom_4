@@ -1,5 +1,6 @@
 package com.bluemoon.apartment.mapper;
 
+import com.bluemoon.apartment.constant.ResidentStatus;
 import com.bluemoon.apartment.dto.request.ResidentRequest;
 import com.bluemoon.apartment.dto.response.ResidentResponse;
 import com.bluemoon.apartment.entity.Resident;
@@ -9,37 +10,51 @@ import org.springframework.stereotype.Component;
 public class ResidentMapper {
 
     public Resident toEntity(ResidentRequest request) {
-        if (request == null) return null;
-        return Resident.builder()
-                .fullName(request.getFullName())
-                .citizenId(request.getCitizenId())
-                .phoneNumber(request.getPhoneNumber())
-                .gender(request.getGender())
-                .dateOfBirth(request.getDateOfBirth())
-                .status(request.getStatus())
-                .build();
-    }
+        Resident resident = new Resident();
 
-    public ResidentResponse toResponse(Resident resident) {
-        if (resident == null) return null;
-        return ResidentResponse.builder()
-                .id(resident.getId())
-                .fullName(resident.getFullName())
-                .citizenId(resident.getCitizenId())
-                .phoneNumber(resident.getPhoneNumber())
-                .gender(resident.getGender())
-                .dateOfBirth(resident.getDateOfBirth())
-                .status(resident.getStatus())
-                .build();
-    }
-
-    public void updateEntity(Resident resident, ResidentRequest request) {
-        if (request == null) return;
         resident.setFullName(request.getFullName());
         resident.setCitizenId(request.getCitizenId());
         resident.setPhoneNumber(request.getPhoneNumber());
         resident.setGender(request.getGender());
         resident.setDateOfBirth(request.getDateOfBirth());
-        resident.setStatus(request.getStatus());
+
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            resident.setStatus(ResidentStatus.valueOf(request.getStatus()));
+        }
+
+        return resident;
+    }
+
+    public ResidentResponse toResponse(Resident resident) {
+        if (resident == null) {
+            return null;
+        }
+
+        ResidentResponse response = new ResidentResponse();
+
+        response.setId(resident.getId());
+        response.setFullName(resident.getFullName());
+        response.setCitizenId(resident.getCitizenId());
+        response.setPhoneNumber(resident.getPhoneNumber());
+        response.setGender(resident.getGender());
+        response.setDateOfBirth(resident.getDateOfBirth());
+
+        if (resident.getStatus() != null) {
+            response.setStatus(ResidentStatus.valueOf(resident.getStatus().name()));
+        }
+
+        return response;
+    }
+
+    public void updateEntity(Resident resident, ResidentRequest request) {
+        resident.setFullName(request.getFullName());
+        resident.setCitizenId(request.getCitizenId());
+        resident.setPhoneNumber(request.getPhoneNumber());
+        resident.setGender(request.getGender());
+        resident.setDateOfBirth(request.getDateOfBirth());
+
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            resident.setStatus(ResidentStatus.valueOf(request.getStatus()));
+        }
     }
 }
