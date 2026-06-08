@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập - Bluemoon</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 32%),
+                    linear-gradient(135deg, #b30000 0%, #990000 48%, #720000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-page {
+            width: 100%;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+        }
+
+        .login-left {
+            color: white;
+            padding: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-left::before {
+            content: "";
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            top: -120px;
+            left: -100px;
+        }
+
+        .login-left::after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            bottom: -80px;
+            right: 40px;
+        }
+
+        .login-brand {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 36px;
+        }
+
+        .login-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-brand-text strong {
+            display: block;
+            font-size: 24px;
+            line-height: 1.1;
+        }
+
+        .login-brand-text span {
+            display: block;
+            margin-top: 5px;
+            color: #ffe0e0;
+            font-size: 13px;
+        }
+
+        .login-title {
+            position: relative;
+            z-index: 1;
+            max-width: 620px;
+        }
+
+        .login-title h1 {
+            color: white;
+            font-size: 44px;
+            line-height: 1.16;
+            margin: 0 0 18px;
+        }
+
+        .login-title p {
+            color: #ffe0e0;
+            font-size: 16px;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .login-right {
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 42px;
+            border-radius: 34px 0 0 34px;
+            box-shadow: -18px 0 45px rgba(0, 0, 0, 0.12);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 430px;
+        }
+
+        .login-card-header {
+            margin-bottom: 28px;
+        }
+
+        .login-card-header h2 {
+            color: #b30000;
+            font-size: 30px;
+            margin: 0 0 8px;
+        }
+
+        .login-card-header p {
+            color: #777;
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .login-form-group {
+            margin-bottom: 18px;
+        }
+
+        .login-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .login-form-group input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            outline: none;
+            font-size: 15px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .login-form-group input:focus {
+            border-color: #b30000;
+            box-shadow: 0 0 0 4px rgba(179, 0, 0, 0.08);
+        }
+
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 22px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .login-options a {
+            color: #b30000;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .login-options a:hover {
+            text-decoration: underline;
+        }
+
+        .login-submit {
+            width: 100%;
+            border: none;
+            border-radius: 999px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, #c40000, #8f0000);
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(179, 0, 0, 0.22);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .login-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(179, 0, 0, 0.3);
+        }
+
+        .login-note {
+            margin-top: 18px;
+            padding: 13px 14px;
+            border-radius: 12px;
+            background: #fff7f7;
+            border: 1px solid #ffd2d2;
+            color: #8f0000;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        @media (max-width: 900px) {
+            .login-page {
+                grid-template-columns: 1fr;
+            }
+
+            .login-left {
+                padding: 44px 28px;
+            }
+
+            .login-title h1 {
+                font-size: 34px;
+            }
+
+            .login-right {
+                border-radius: 28px 28px 0 0;
+                padding: 34px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="login-page">
+    <section class="login-left">
+        <div class="login-brand">
+            <div class="login-logo"></div>
+
+            <div class="login-brand-text">
+                <strong>Bluemoon</strong>
+                <span>Apartment Management</span>
+            </div>
+        </div>
+
+        <div class="login-title">
+            <h1>Quản lý chung cư gọn gàng, trực quan và dễ sử dụng</h1>
+            <p>
+                IT3180 - Nhóm 4.
+            </p>
+        </div>
+    </section>
+
+    <section class="login-right">
+        <div class="login-card">
+            <div class="login-card-header">
+                <h2>Đăng nhập</h2>
+                <p>Nhập thông tin để truy cập hệ thống quản lý chung cư Bluemoon.</p>
+            </div>
+
+            <!-- Hiện tại chưa bật bảo mật thật, nên submit tạm sang dashboard -->
+            <form th:action="@{/dashboard}" method="get">
+                <div class="login-form-group">
+                    <label for="username">Tên đăng nhập</label>
+                    <input id="username"
+                           name="username"
+                           type="text"
+                           placeholder="Ví dụ: admin"
+                           autocomplete="username">
+                </div>
+
+                <div class="login-form-group">
+                    <label for="password">Mật khẩu</label>
+                    <input id="password"
+                           name="password"
+                           type="password"
+                           placeholder="Nhập mật khẩu"
+                           autocomplete="current-password">
+                </div>
+
+                <div class="login-options">
+                    <label>
+                        <input type="checkbox" name="remember">
+                        Ghi nhớ đăng nhập
+                    </label>
+
+                    <a href="javascript:void(0)">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" class="login-submit">
+                    Đăng nhập
+                </button>
+            </form>
+        </div>
+    </section>
+</div>
+</body>
+</html>

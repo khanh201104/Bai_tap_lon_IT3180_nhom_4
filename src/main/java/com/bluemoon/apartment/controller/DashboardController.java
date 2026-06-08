@@ -35,7 +35,7 @@ public class DashboardController {
     private final FeePaymentRepository feePaymentRepository;
     private final VehicleRepository vehicleRepository;
 
-    @GetMapping({"/", "/dashboard"})
+    @GetMapping({"/dashboard"})
     public String index(Model model) {
         long householdCount = householdRepository.count();
         long residentCount = residentRepository.count();
