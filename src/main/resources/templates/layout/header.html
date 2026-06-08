@@ -1,9 +1,32 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<body>
-<header th:fragment="header" class="topbar">
-    <div class="topbar-title">Bluemoon Apartment Management</div>
-    <div class="topbar-user">Admin</div>
+<header class="topbar" th:fragment="header">
+    <div class="topbar-left">
+        <div class="topbar-title">QUẢN LÝ CHUNG CƯ BLUEMOON</div>
+        <div class="topbar-subtitle">Hệ thống quản trị dữ liệu cư dân, hộ khẩu và khoản phí</div>
+    </div>
+
+    <div class="topbar-right">
+        <div class="topbar-date" id="currentDateText"></div>
+
+        <div class="admin-pill">
+            <span class="admin-status"></span>
+            <span>Admin</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dateElement = document.getElementById("currentDateText");
+            if (!dateElement) {
+                return;
+            }
+
+            const now = new Date();
+            dateElement.textContent = now.toLocaleDateString("vi-VN", {
+                weekday: "long",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+        });
+    </script>
 </header>
-</body>
-</html>

@@ -1,18 +1,69 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<body>
-<aside th:fragment="sidebar" class="sidebar">
-    <div class="logo">Bluemoon</div>
+<aside class="sidebar" th:fragment="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-mark"></div>
 
-    <nav>
-        <a th:href="@{/}">Dashboard</a>
-        <a th:href="@{/residents}">Quản lý nhân khẩu</a>
-        <a th:href="@{/households}">Quản lý hộ khẩu</a>
-        <a th:href="@{/temporary}">Tạm trú / Tạm vắng</a>
-        <a th:href="@{/fees}">Quản lý khoản phí</a>
-        <a th:href="@{/vehicles}">Quản lý phương tiện</a>
-        <a th:href="@{/reports}">Thống kê</a>
+        <div class="brand-text">
+            <div class="brand-name">Bluemoon</div>
+            <div class="brand-subtitle">Apartment Management</div>
+        </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <nav class="sidebar-nav">
+        <a th:href="@{/dashboard}" class="sidebar-link" data-path="/dashboard" data-alt-path="/">
+            <span class="link-text">Dashboard</span>
+            <span class="link-indicator"></span>
+        </a>
+
+        <a th:href="@{/residents}" class="sidebar-link" data-path="/residents">
+            <span class="link-text">Quản lý nhân khẩu</span>
+            <span class="link-indicator"></span>
+        </a>
+
+        <a th:href="@{/households}" class="sidebar-link" data-path="/households">
+            <span class="link-text">Quản lý hộ khẩu</span>
+            <span class="link-indicator"></span>
+        </a>
+
+        <a th:href="@{/temporary}" class="sidebar-link" data-path="/temporary">
+            <span class="link-text">Tạm trú / Tạm vắng</span>
+            <span class="link-indicator"></span>
+        </a>
+
+        <a th:href="@{/fees}" class="sidebar-link" data-path="/fees">
+            <span class="link-text">Quản lý khoản phí</span>
+            <span class="link-indicator"></span>
+        </a>
+
+        <a th:href="@{/vehicles}" class="sidebar-link" data-path="/vehicles">
+            <span class="link-text">Quản lý phương tiện</span>
+            <span class="link-indicator"></span>
+        </a>
     </nav>
+
+    <div class="sidebar-footer">
+        <div class="footer-title">IT3180 - Nhóm 4</div>
+        <div class="footer-subtitle">Bluemoon</div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const currentPath = window.location.pathname;
+            const links = document.querySelectorAll(".sidebar-link");
+
+            links.forEach(function (link) {
+                const path = link.getAttribute("data-path");
+                const altPath = link.getAttribute("data-alt-path");
+
+                const isDashboardRoot = altPath && currentPath === altPath;
+                const isExact = currentPath === path;
+                const isChildPage = path !== "/dashboard" && currentPath.startsWith(path + "/");
+
+                if (isExact || isChildPage || isDashboardRoot) {
+                    link.classList.add("active");
+                }
+            });
+        });
+    </script>
 </aside>
-</body>
-</html>

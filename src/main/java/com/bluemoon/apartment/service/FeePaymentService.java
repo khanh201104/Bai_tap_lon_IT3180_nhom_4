@@ -26,4 +26,6 @@ public interface FeePaymentService {
     void generateMonthlyPayments();
 
     void generateYearlyPayments();
+
+    void generateParkingMonthlyPayments();
 }

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý phương tiện - Bluemoon</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        .vehicle-filter-form {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .vehicle-filter-form input,
+        .vehicle-filter-form select {
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .vehicle-filter-form input:focus,
+        .vehicle-filter-form select:focus {
+            border-color: #b30000;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        .btn-secondary {
+            background: #777;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .btn-info {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #0d5fb3;
+        }
+
+        .btn-warning {
+            background: #f0a500;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d18d00;
+        }
+
+        .btn-danger {
+            background: #b30000;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #8f0000;
+        }
+
+        .modal-box.modal-large {
+            width: 820px;
+        }
+
+        .modal-body-scroll {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            min-height: 90px;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            resize: vertical;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-group textarea:focus {
+            border-color: #b30000;
+        }
+
+        .field-error {
+            display: block;
+            margin-top: 6px;
+            color: #b30000;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .input-error {
+            border-color: #b30000 !important;
+            background: #fff7f7;
+        }
+
+        .required {
+            color: #b30000;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-active {
+            background: #e7f7ea;
+            color: #137333;
+            border: 1px solid #b7e1c1;
+        }
+
+        .badge-inactive {
+            background: #f1f1f1;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail-item {
+            background: #fff7f7;
+            border: 1px solid #ffd2d2;
+            border-left: 4px solid #b30000;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .detail-label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-weight: 700;
+            color: #222;
+            word-break: break-word;
+        }
+
+        .empty-row {
+            text-align: center;
+            color: #777;
+            padding: 24px !important;
+        }
+
+        .delete-message {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .delete-plate {
+            margin-top: 12px;
+            background: #fff3f3;
+            border: 1px solid #ffb3b3;
+            border-left: 5px solid #b30000;
+            padding: 12px;
+            border-radius: 6px;
+            color: #b30000;
+            font-weight: 700;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        @media (max-width: 1000px) {
+            .vehicle-filter-form {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid,
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-box.modal-large {
+                width: 94%;
+            }
+
+            .table-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div th:replace="~{layout/header :: header}"></div>
+
+    <main class="content">
+        <div class="header-actions">
+            <h1>Quản lý phương tiện</h1>
+
+            <button type="button" class="btn btn-primary" onclick="openModal('createVehicleModal')">
+                Thêm phương tiện
+            </button>
+        </div>
+
+        <div class="search-box">
+            <form th:action="@{/vehicles}" method="get" class="vehicle-filter-form">
+                <input type="text"
+                       name="keyword"
+                       placeholder="Tìm theo biển số, chủ xe, căn hộ..."
+                       th:value="${keyword}">
+
+                <select name="householdId">
+                    <option value="">-- Tất cả hộ khẩu --</option>
+                    <option th:each="household : ${households}"
+                            th:value="${household.id}"
+                            th:selected="${selectedHouseholdId != null and selectedHouseholdId == household.id}"
+                            th:text="${household.householdCode + ' - Căn ' + household.apartmentNumber}">
+                    </option>
+                </select>
+
+                <select name="vehicleType">
+                    <option value="">-- Tất cả loại xe --</option>
+                    <option th:each="type : ${vehicleTypes}"
+                            th:value="${type}"
+                            th:selected="${selectedVehicleType != null and selectedVehicleType == type}"
+                            th:text="${type.displayName}">
+                    </option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">
+                    Tìm kiếm
+                </button>
+
+                <a th:href="@{/vehicles}" class="btn btn-outline">
+                    Làm mới
+                </a>
+            </form>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Biển số</th>
+                <th>Loại xe</th>
+                <th>Phí/tháng</th>
+                <th>Chủ xe</th>
+                <th>Hộ khẩu</th>
+                <th>Căn hộ</th>
+                <th>Ngày đăng ký</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="item : ${vehicles}">
+                <td th:text="${item.id}"></td>
+
+                <td th:text="${item.licensePlate}"></td>
+
+                <td th:text="${item.vehicleTypeName}"></td>
+
+                <td th:text="${item.monthlyFee != null ? item.monthlyFee + ' đ' : ''}"></td>
+
+                <td th:text="${item.ownerName}"></td>
+
+                <td th:text="${item.householdCode}"></td>
+
+                <td th:text="${item.apartmentNumber}"></td>
+
+                <td th:text="${item.registeredDate != null ? #temporals.format(item.registeredDate, 'dd/MM/yyyy') : ''}"></td>
+
+                <td>
+                    <span class="badge"
+                          th:classappend="${item.status != null and item.status.name() == 'ACTIVE'} ? ' badge-active' : ' badge-inactive'"
+                          th:text="${item.statusName}">
+                    </span>
+                </td>
+
+                <td>
+                    <div class="table-actions">
+                        <button type="button"
+                                class="btn btn-info btn-small"
+                                th:onclick="'openModal(\'detailVehicleModal-' + ${item.id} + '\')'">
+                            Chi tiết
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-warning btn-small"
+                                th:onclick="'openModal(\'editVehicleModal-' + ${item.id} + '\')'">
+                            Sửa
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-danger btn-small"
+                                th:onclick="'openModal(\'deleteVehicleModal-' + ${item.id} + '\')'">
+                            Xóa
+                        </button>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:if="${vehicles == null or #lists.isEmpty(vehicles)}">
+                <td colspan="10" class="empty-row">
+                    Không có dữ liệu phương tiện
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- MODAL THÊM -->
+        <div id="createVehicleModal"
+             class="modal-overlay"
+             th:classappend="${createError != null and createError} ? ' show' : ''"
+             onclick="closeModalOnOutsideClick(event)">
+            <div class="modal-box modal-large" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h2>Thêm phương tiện</h2>
+                    <button type="button" class="modal-close" onclick="closeModal('createVehicleModal')">
+                        ×
+                    </button>
+                </div>
+
+                <form th:action="@{/vehicles}" th:object="${vehicle}" method="post">
+                    <div class="modal-body-scroll">
+                        <div class="modal-alert-error" th:if="${createError != null and createError}">
+                            Vui lòng kiểm tra lại thông tin
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Biển số xe <span class="required">*</span></label>
+                                <input type="text"
+                                       th:field="*{licensePlate}"
+                                       th:classappend="${#fields.hasErrors('licensePlate')} ? 'input-error' : ''"
+                                       placeholder="VD: 30A-12345">
+                                <span class="field-error"
+                                      th:if="${#fields.hasErrors('licensePlate')}"
+                                      th:errors="*{licensePlate}">
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Loại phương tiện <span class="required">*</span></label>
+                                <select th:field="*{vehicleType}"
+                                        th:classappend="${#fields.hasErrors('vehicleType')} ? 'input-error' : ''">
+                                    <option value="">-- Chọn loại phương tiện --</option>
+                                    <option th:each="type : ${vehicleTypes}"
+                                            th:value="${type}"
+                                            th:text="${type.displayName}">
+                                    </option>
+                                </select>
+                                <span class="field-error"
+                                      th:if="${#fields.hasErrors('vehicleType')}"
+                                      th:errors="*{vehicleType}">
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Hãng xe</label>
+                                <input type="text" th:field="*{brand}" placeholder="VD: Honda, Toyota...">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Màu xe</label>
+                                <input type="text" th:field="*{color}" placeholder="VD: Đen, trắng...">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Chủ xe</label>
+                                <input type="text" th:field="*{ownerName}" placeholder="Nhập tên chủ xe">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Ngày đăng ký <span class="required">*</span></label>
+                                <div class="date-input-wrapper">
+                                    <input type="text"
+                                           id="createRegisteredDateText"
+                                           th:field="*{registeredDate}"
+                                           th:classappend="${#fields.hasErrors('registeredDate')} ? 'input-error' : ''"
+                                           placeholder="dd/MM/yyyy">
+                                    <input type="date"
+                                           id="createRegisteredDatePicker"
+                                           class="native-date-picker"
+                                           onchange="syncDatePickerToText('createRegisteredDatePicker', 'createRegisteredDateText')">
+                                    <button type="button"
+                                            class="date-picker-btn"
+                                            onclick="openDatePicker('createRegisteredDatePicker')">
+                                        📅
+                                    </button>
+                                </div>
+                                <span class="form-hint">Định dạng: dd/MM/yyyy</span>
+                                <span class="field-error"
+                                      th:if="${#fields.hasErrors('registeredDate')}"
+                                      th:errors="*{registeredDate}">
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Hộ khẩu <span class="required">*</span></label>
+                                <select th:field="*{householdId}"
+                                        th:classappend="${#fields.hasErrors('householdId')} ? 'input-error' : ''">
+                                    <option value="">-- Chọn hộ khẩu --</option>
+                                    <option th:each="household : ${households}"
+                                            th:value="${household.id}"
+                                            th:text="${household.householdCode + ' - Căn ' + household.apartmentNumber}">
+                                    </option>
+                                </select>
+                                <span class="field-error"
+                                      th:if="${#fields.hasErrors('householdId')}"
+                                      th:errors="*{householdId}">
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Trạng thái <span class="required">*</span></label>
+                                <select th:field="*{status}"
+                                        th:classappend="${#fields.hasErrors('status')} ? 'input-error' : ''">
+                                    <option value="">-- Chọn trạng thái --</option>
+                                    <option th:each="status : ${vehicleStatuses}"
+                                            th:value="${status}"
+                                            th:text="${status.displayName}">
+                                    </option>
+                                </select>
+                                <span class="field-error"
+                                      th:if="${#fields.hasErrors('status')}"
+                                      th:errors="*{status}">
+                                </span>
+                            </div>
+
+                            <div class="form-group full">
+                                <label>Ghi chú</label>
+                                <textarea th:field="*{note}" placeholder="Ghi chú thêm nếu có"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('createVehicleModal')">
+                            Hủy
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL CHI TIẾT / SỬA / XÓA -->
+        <div th:each="item : ${vehicles}">
+
+            <!-- CHI TIẾT -->
+            <div class="modal-overlay"
+                 th:id="'detailVehicleModal-' + ${item.id}"
+                 onclick="closeModalOnOutsideClick(event)">
+                <div class="modal-box modal-large" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h2>Chi tiết phương tiện</h2>
+                        <button type="button"
+                                class="modal-close"
+                                th:onclick="'closeModal(\'detailVehicleModal-' + ${item.id} + '\')'">
+                            ×
+                        </button>
+                    </div>
+
+                    <div class="modal-body-scroll">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">ID</span>
+                                <span class="detail-value" th:text="${item.id}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Biển số xe</span>
+                                <span class="detail-value" th:text="${item.licensePlate}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Loại phương tiện</span>
+                                <span class="detail-value" th:text="${item.vehicleTypeName}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Phí gửi xe / tháng</span>
+                                <span class="detail-value"
+                                      th:text="${item.monthlyFee != null ? item.monthlyFee + ' đ' : ''}">
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Hãng xe</span>
+                                <span class="detail-value" th:text="${item.brand}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Màu xe</span>
+                                <span class="detail-value" th:text="${item.color}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Chủ xe</span>
+                                <span class="detail-value" th:text="${item.ownerName}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Ngày đăng ký</span>
+                                <span class="detail-value"
+                                      th:text="${item.registeredDate != null ? #temporals.format(item.registeredDate, 'dd/MM/yyyy') : ''}">
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Mã hộ khẩu</span>
+                                <span class="detail-value" th:text="${item.householdCode}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Căn hộ</span>
+                                <span class="detail-value" th:text="${item.apartmentNumber}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Trạng thái</span>
+                                <span class="detail-value" th:text="${item.statusName}"></span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Ghi chú</span>
+                                <span class="detail-value" th:text="${item.note}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button"
+                                class="btn btn-warning"
+                                th:onclick="'switchModal(\'detailVehicleModal-' + ${item.id} + '\', \'editVehicleModal-' + ${item.id} + '\')'">
+                            Sửa
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                th:onclick="'closeModal(\'detailVehicleModal-' + ${item.id} + '\')'">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SỬA -->
+            <div class="modal-overlay"
+                 th:id="'editVehicleModal-' + ${item.id}"
+                 th:classappend="${editErrorId != null and editErrorId == item.id} ? ' show' : ''"
+                 onclick="closeModalOnOutsideClick(event)">
+                <div class="modal-box modal-large" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h2>Cập nhật phương tiện</h2>
+                        <button type="button"
+                                class="modal-close"
+                                th:onclick="'closeModal(\'editVehicleModal-' + ${item.id} + '\')'">
+                            ×
+                        </button>
+                    </div>
+
+                    <form th:action="@{/vehicles/{id}/update(id=${item.id})}"
+                          th:object="${vehicle}"
+                          method="post">
+                        <div class="modal-body-scroll">
+                            <div class="modal-alert-error"
+                                 th:if="${editErrorId != null and editErrorId == item.id}">
+                                Vui lòng kiểm tra lại thông tin
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Biển số xe <span class="required">*</span></label>
+                                    <input type="text"
+                                           name="licensePlate"
+                                           th:classappend="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('licensePlate')} ? 'input-error' : ''"
+                                           th:value="${editErrorId != null and editErrorId == item.id ? vehicle.licensePlate : item.licensePlate}"
+                                           placeholder="VD: 30A-12345">
+                                    <span class="field-error"
+                                          th:if="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('licensePlate')}"
+                                          th:errors="*{licensePlate}">
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Loại phương tiện <span class="required">*</span></label>
+                                    <select name="vehicleType"
+                                            th:classappend="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('vehicleType')} ? 'input-error' : ''">
+                                        <option value="">-- Chọn loại phương tiện --</option>
+                                        <option th:each="type : ${vehicleTypes}"
+                                                th:value="${type}"
+                                                th:selected="${editErrorId != null and editErrorId == item.id ? vehicle.vehicleType == type : item.vehicleType == type}"
+                                                th:text="${type.displayName}">
+                                        </option>
+                                    </select>
+                                    <span class="field-error"
+                                          th:if="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('vehicleType')}"
+                                          th:errors="*{vehicleType}">
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Hãng xe</label>
+                                    <input type="text"
+                                           name="brand"
+                                           th:value="${editErrorId != null and editErrorId == item.id ? vehicle.brand : item.brand}"
+                                           placeholder="VD: Honda, Toyota...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Màu xe</label>
+                                    <input type="text"
+                                           name="color"
+                                           th:value="${editErrorId != null and editErrorId == item.id ? vehicle.color : item.color}"
+                                           placeholder="VD: Đen, trắng...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Chủ xe</label>
+                                    <input type="text"
+                                           name="ownerName"
+                                           th:value="${editErrorId != null and editErrorId == item.id ? vehicle.ownerName : item.ownerName}"
+                                           placeholder="Nhập tên chủ xe">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Ngày đăng ký <span class="required">*</span></label>
+                                    <div class="date-input-wrapper">
+                                        <input type="text"
+                                               th:id="'editRegisteredDateText-' + ${item.id}"
+                                               name="registeredDate"
+                                               th:classappend="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('registeredDate')} ? 'input-error' : ''"
+                                               th:value="${editErrorId != null and editErrorId == item.id
+                                                    ? (vehicle.registeredDate != null ? #temporals.format(vehicle.registeredDate, 'dd/MM/yyyy') : '')
+                                                    : (item.registeredDate != null ? #temporals.format(item.registeredDate, 'dd/MM/yyyy') : '')}"
+                                               placeholder="dd/MM/yyyy">
+
+                                        <input type="date"
+                                               th:id="'editRegisteredDatePicker-' + ${item.id}"
+                                               class="native-date-picker"
+                                               th:onchange="'syncDatePickerToText(\'editRegisteredDatePicker-' + ${item.id} + '\', \'editRegisteredDateText-' + ${item.id} + '\')'">
+
+                                        <button type="button"
+                                                class="date-picker-btn"
+                                                th:onclick="'openDatePicker(\'editRegisteredDatePicker-' + ${item.id} + '\')'">
+                                            📅
+                                        </button>
+                                    </div>
+                                    <span class="form-hint">Định dạng: dd/MM/yyyy</span>
+                                    <span class="field-error"
+                                          th:if="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('registeredDate')}"
+                                          th:errors="*{registeredDate}">
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Hộ khẩu <span class="required">*</span></label>
+                                    <select name="householdId"
+                                            th:classappend="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('householdId')} ? 'input-error' : ''">
+                                        <option value="">-- Chọn hộ khẩu --</option>
+                                        <option th:each="household : ${households}"
+                                                th:value="${household.id}"
+                                                th:selected="${editErrorId != null and editErrorId == item.id ? vehicle.householdId == household.id : item.householdId == household.id}"
+                                                th:text="${household.householdCode + ' - Căn ' + household.apartmentNumber}">
+                                        </option>
+                                    </select>
+                                    <span class="field-error"
+                                          th:if="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('householdId')}"
+                                          th:errors="*{householdId}">
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Trạng thái <span class="required">*</span></label>
+                                    <select name="status"
+                                            th:classappend="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('status')} ? 'input-error' : ''">
+                                        <option value="">-- Chọn trạng thái --</option>
+                                        <option th:each="status : ${vehicleStatuses}"
+                                                th:value="${status}"
+                                                th:selected="${editErrorId != null and editErrorId == item.id ? vehicle.status == status : item.status == status}"
+                                                th:text="${status.displayName}">
+                                        </option>
+                                    </select>
+                                    <span class="field-error"
+                                          th:if="${editErrorId != null and editErrorId == item.id and #fields.hasErrors('status')}"
+                                          th:errors="*{status}">
+                                    </span>
+                                </div>
+
+                                <div class="form-group full">
+                                    <label>Ghi chú</label>
+                                    <textarea name="note"
+                                              placeholder="Ghi chú thêm nếu có"
+                                              th:text="${editErrorId != null and editErrorId == item.id ? vehicle.note : item.note}">
+                                    </textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    th:onclick="'closeModal(\'editVehicleModal-' + ${item.id} + '\')'">
+                                Hủy
+                            </button>
+
+                            <button type="submit" class="btn btn-primary">
+                                Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- XÓA -->
+            <div class="modal-overlay"
+                 th:id="'deleteVehicleModal-' + ${item.id}"
+                 onclick="closeModalOnOutsideClick(event)">
+                <div class="modal-box" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h2>Xác nhận xóa</h2>
+                        <button type="button"
+                                class="modal-close"
+                                th:onclick="'closeModal(\'deleteVehicleModal-' + ${item.id} + '\')'">
+                            ×
+                        </button>
+                    </div>
+
+                    <form th:action="@{/vehicles/{id}/delete(id=${item.id})}" method="post">
+                        <div class="delete-message">
+                            Bạn có chắc muốn xóa phương tiện này không?
+                            <div class="delete-plate">
+                                Biển số:
+                                <span th:text="${item.licensePlate}"></span>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    th:onclick="'closeModal(\'deleteVehicleModal-' + ${item.id} + '\')'">
+                                Hủy
+                            </button>
+
+                            <button type="submit" class="btn btn-danger">
+                                Xóa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+</div>
+
+<script th:inline="javascript">
+    function openModal(id) {
+        closeAllModals();
+
+        const modal = document.getElementById(id);
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.add("show");
+        document.body.classList.add("modal-open");
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove("show");
+
+        if (!document.querySelector(".modal-overlay.show")) {
+            document.body.classList.remove("modal-open");
+        }
+    }
+
+    function closeAllModals() {
+        document.querySelectorAll(".modal-overlay.show").forEach(function (modal) {
+            modal.classList.remove("show");
+        });
+
+        document.body.classList.remove("modal-open");
+    }
+
+    function switchModal(currentId, nextId) {
+        closeModal(currentId);
+        openModal(nextId);
+    }
+
+    function closeModalOnOutsideClick(event) {
+        if (event.target.classList.contains("modal-overlay")) {
+            event.target.classList.remove("show");
+
+            if (!document.querySelector(".modal-overlay.show")) {
+                document.body.classList.remove("modal-open");
+            }
+        }
+    }
+
+    function openDatePicker(pickerId) {
+        const picker = document.getElementById(pickerId);
+        if (!picker) {
+            return;
+        }
+
+        if (typeof picker.showPicker === "function") {
+            picker.showPicker();
+        } else {
+            picker.click();
+        }
+    }
+
+    function syncDatePickerToText(pickerId, textId) {
+        const picker = document.getElementById(pickerId);
+        const textInput = document.getElementById(textId);
+
+        if (!picker || !textInput || !picker.value) {
+            return;
+        }
+
+        const parts = picker.value.split("-");
+        if (parts.length !== 3) {
+            return;
+        }
+
+        textInput.value = parts[2] + "/" + parts[1] + "/" + parts[0];
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeAllModals();
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const createError = /*[[${createError != null and createError}]]*/ false;
+        const editErrorId = /*[[${editErrorId}]]*/ null;
+
+        if (createError) {
+            const modal = document.getElementById("createVehicleModal");
+            if (modal) {
+                modal.classList.add("show");
+                document.body.classList.add("modal-open");
+            }
+        }
+
+        if (editErrorId) {
+            const modal = document.getElementById("editVehicleModal-" + editErrorId);
+            if (modal) {
+                modal.classList.add("show");
+                document.body.classList.add("modal-open");
+            }
+        }
+    });
+</script>
+</body>
+</html>

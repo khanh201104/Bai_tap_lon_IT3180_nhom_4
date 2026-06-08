@@ -2,45 +2,655 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Bluemoon Dashboard</title>
+    <title>Dashboard - Bluemoon</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
 
+    <style>
+        .dashboard-hero {
+            background: linear-gradient(135deg, #b30000, #8f0000);
+            color: white;
+            border-radius: 18px;
+            padding: 26px 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 12px 30px rgba(179, 0, 0, 0.22);
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .dashboard-hero h1 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 30px;
+        }
+
+        .dashboard-hero p {
+            color: #ffe8e8;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .hero-badge {
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 22px 22px 22px 26px;
+            border: 1px solid #eee;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+            transition: 0.2s ease;
+            text-decoration: none;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(179, 0, 0, 0.12);
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: 18px;
+            left: 0;
+            width: 5px;
+            height: calc(100% - 36px);
+            background: #b30000;
+            border-radius: 0 999px 999px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            color: #b30000;
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .stat-sub {
+            margin-top: 10px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .progress-card {
+            background: white;
+            border-radius: 16px;
+            padding: 22px;
+            border: 1px solid #eee;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            margin-bottom: 24px;
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .progress-header h2 {
+            color: #b30000;
+            font-size: 21px;
+            margin: 0;
+        }
+
+        .progress-number {
+            font-weight: 800;
+            color: #b30000;
+            font-size: 24px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            background: #f1f1f1;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #b30000, #ff5555);
+            border-radius: 999px;
+        }
+
+        .progress-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .dashboard-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 22px;
+            border: 1px solid #eee;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            gap: 12px;
+        }
+
+        .panel-header h2 {
+            color: #b30000;
+            font-size: 21px;
+            margin: 0;
+        }
+
+        .panel-note {
+            color: #777;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .chart-box {
+            height: 320px;
+            position: relative;
+        }
+
+        .chart-box.small {
+            height: 260px;
+        }
+
+        .quick-links {
+            display: grid;
+            gap: 12px;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            background: #fff7f7;
+            border: 1px solid #ffd2d2;
+            text-decoration: none;
+            color: #222;
+            transition: 0.2s ease;
+        }
+
+        .quick-link:hover {
+            background: #b30000;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .quick-link-title {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .quick-link-desc {
+            font-size: 13px;
+            opacity: 0.78;
+        }
+
+        .quick-link-arrow {
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .mini-stat {
+            background: #fff7f7;
+            border: 1px solid #ffd2d2;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .mini-stat span {
+            display: block;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .mini-stat strong {
+            color: #b30000;
+            font-size: 18px;
+        }
+
+        .dashboard-bottom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-main,
+            .dashboard-bottom {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .dashboard-hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-grid,
+            .mini-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .panel-note {
+                white-space: normal;
+            }
+        }
+    </style>
+</head>
+
+<body>
 <div th:replace="~{layout/sidebar :: sidebar}"></div>
 
 <div class="main-content">
     <div th:replace="~{layout/header :: header}"></div>
 
     <main class="content">
-        <h1>Dashboard</h1>
-        <p>Hệ thống quản lý chung cư Bluemoon</p>
-
-        <div class="cards">
-            <div class="card">
-                <h3>Tổng số hộ</h3>
-                <p>0</p>
+        <section class="dashboard-hero">
+            <div>
+                <h1>Dashboard Bluemoon</h1>
+                <p>
+                    Tổng quan tình hình cư dân, hộ khẩu, phương tiện và các khoản phí.
+                </p>
             </div>
 
-            <div class="card">
-                <h3>Tổng nhân khẩu</h3>
-                <p>0</p>
+            <div class="hero-badge">
+                Bluemoon Apartment
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            <a th:href="@{/households}" class="stat-card">
+                <div class="stat-label">Tổng số hộ khẩu</div>
+                <div class="stat-value" th:text="${householdCount}">0</div>
+                <div class="stat-sub">Bấm để xem quản lý hộ khẩu</div>
+            </a>
+
+            <a th:href="@{/residents}" class="stat-card">
+                <div class="stat-label">Tổng nhân khẩu</div>
+                <div class="stat-value" th:text="${residentCount}">0</div>
+                <div class="stat-sub">Bấm để xem danh sách cư dân</div>
+            </a>
+
+            <a th:href="@{/vehicles}" class="stat-card">
+                <div class="stat-label">Phương tiện đang gửi</div>
+                <div class="stat-value" th:text="${activeVehicleCount}">0</div>
+                <div class="stat-sub">
+                    Tổng phương tiện:
+                    <span th:text="${vehicleCount}">0</span>
+                </div>
+            </a>
+
+            <a th:href="@{/temporary}" class="stat-card">
+                <div class="stat-label">Tạm trú / tạm vắng</div>
+                <div class="stat-value" th:text="${temporaryCount}">0</div>
+                <div class="stat-sub">Bấm để xem hồ sơ tạm trú</div>
+            </a>
+        </section>
+
+        <section class="progress-card">
+            <div class="progress-header">
+                <h2>Tỷ lệ hoàn thành thu phí</h2>
+                <div class="progress-number">
+                    <span th:text="${paymentRate}">0</span>%
+                </div>
             </div>
 
-            <div class="card">
-                <h3>Đã thu</h3>
-                <p>0 VNĐ</p>
+            <div class="progress-track">
+                <div class="progress-fill" th:style="'width:' + ${paymentRate} + '%'"></div>
             </div>
 
-            <div class="card">
-                <h3>Chưa thu</h3>
-                <p>0 VNĐ</p>
+            <div class="progress-text">
+                Đã thu:
+                <strong th:text="${paidAmountText}">0 VNĐ</strong>
+                · Chưa thu:
+                <strong th:text="${unpaidAmountText}">0 VNĐ</strong>
+                · Quá hạn:
+                <strong th:text="${overdueAmountText}">0 VNĐ</strong>
             </div>
-        </div>
+        </section>
+
+        <section class="dashboard-main">
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Biến động tổng phí theo 6 tháng gần nhất</h2>
+                    <span class="panel-note">Dựa trên kỳ thu MM/yyyy</span>
+                </div>
+
+                <div class="chart-box">
+                    <canvas id="feeTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Liên kết nhanh</h2>
+                    <span class="panel-note">Đi tới</span>
+                </div>
+
+                <div class="quick-links">
+                    <a th:href="@{/residents}" class="quick-link">
+                        <div>
+                            <span class="quick-link-title">Quản lý nhân khẩu</span>
+                            <span class="quick-link-desc">Thêm, sửa, xóa cư dân</span>
+                        </div>
+                        <span class="quick-link-arrow">›</span>
+                    </a>
+
+                    <a th:href="@{/households}" class="quick-link">
+                        <div>
+                            <span class="quick-link-title">Quản lý hộ khẩu</span>
+                            <span class="quick-link-desc">Căn hộ và chủ hộ</span>
+                        </div>
+                        <span class="quick-link-arrow">›</span>
+                    </a>
+
+                    <a th:href="@{/fees}" class="quick-link">
+                        <div>
+                            <span class="quick-link-title">Quản lý khoản phí</span>
+                            <span class="quick-link-desc">Phiếu thu và loại phí</span>
+                        </div>
+                        <span class="quick-link-arrow">›</span>
+                    </a>
+
+                    <a th:href="@{/vehicles}" class="quick-link">
+                        <div>
+                            <span class="quick-link-title">Quản lý phương tiện</span>
+                            <span class="quick-link-desc">Xe máy, ô tô, xe điện</span>
+                        </div>
+                        <span class="quick-link-arrow">›</span>
+                    </a>
+
+                    <a th:href="@{/temporary}" class="quick-link">
+                        <div>
+                            <span class="quick-link-title">Tạm trú / tạm vắng</span>
+                            <span class="quick-link-desc">Theo dõi cư trú tạm thời</span>
+                        </div>
+                        <span class="quick-link-arrow">›</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-bottom">
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Tình trạng phiếu thu</h2>
+                    <span class="panel-note">Theo số lượng phiếu</span>
+                </div>
+
+                <div class="chart-box small">
+                    <canvas id="feeStatusChart"></canvas>
+                </div>
+
+                <div class="mini-stats">
+                    <div class="mini-stat">
+                        <span>Đã đóng</span>
+                        <strong th:text="${paidCount}">0</strong>
+                    </div>
+
+                    <div class="mini-stat">
+                        <span>Chưa đóng</span>
+                        <strong th:text="${unpaidCount}">0</strong>
+                    </div>
+
+                    <div class="mini-stat">
+                        <span>Quá hạn</span>
+                        <strong th:text="${overdueCount}">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Phương tiện theo loại</h2>
+                    <span class="panel-note">Chỉ tính xe đang gửi</span>
+                </div>
+
+                <div class="chart-box small">
+                    <canvas id="vehicleTypeChart"></canvas>
+                </div>
+
+                <div class="mini-stats">
+                    <div class="mini-stat">
+                        <span>Dự kiến phí gửi xe/tháng</span>
+                        <strong th:text="${parkingEstimateAmountText}">0 VNĐ</strong>
+                    </div>
+
+                    <div class="mini-stat">
+                        <span>Đang gửi</span>
+                        <strong th:text="${activeVehicleCount}">0</strong>
+                    </div>
+
+                    <div class="mini-stat">
+                        <span>Tổng phương tiện</span>
+                        <strong th:text="${vehicleCount}">0</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <div th:replace="~{layout/footer :: footer}"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script th:inline="javascript">
+    const feeStatusLabels = /*[[${feeStatusLabels}]]*/ [];
+    const feeStatusCounts = /*[[${feeStatusCounts}]]*/ [];
+
+    const vehicleTypeLabels = /*[[${vehicleTypeLabels}]]*/ [];
+    const vehicleTypeCounts = /*[[${vehicleTypeCounts}]]*/ [];
+
+    const feeTrendLabels = /*[[${feeTrendLabels}]]*/ [];
+    const feeTrendAmounts = /*[[${feeTrendAmounts}]]*/ [];
+
+    const chartColors = {
+        red: "#b30000",
+        redLight: "#ff7777",
+        orange: "#f0a500",
+        green: "#137333",
+        gray: "#777777",
+        blue: "#1976d2"
+    };
+
+    function formatMoney(value) {
+        return Number(value || 0).toLocaleString("vi-VN") + " đ";
+    }
+
+    function hasAnyData(data) {
+        return Array.isArray(data) && data.some(function (value) {
+            return Number(value || 0) > 0;
+        });
+    }
+
+    function createFeeTrendChart() {
+        const canvas = document.getElementById("feeTrendChart");
+        if (!canvas) {
+            return;
+        }
+
+        new Chart(canvas, {
+            type: "line",
+            data: {
+                labels: feeTrendLabels,
+                datasets: [{
+                    label: "Tổng phí phát sinh",
+                    data: feeTrendAmounts,
+                    borderColor: chartColors.red,
+                    backgroundColor: "rgba(179, 0, 0, 0.12)",
+                    tension: 0.35,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return " " + formatMoney(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return formatMoney(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createFeeStatusChart() {
+        const canvas = document.getElementById("feeStatusChart");
+        if (!canvas) {
+            return;
+        }
+
+        const data = hasAnyData(feeStatusCounts) ? feeStatusCounts : [1];
+        const labels = hasAnyData(feeStatusCounts) ? feeStatusLabels : ["Chưa có dữ liệu"];
+
+        new Chart(canvas, {
+            type: "doughnut",
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: hasAnyData(feeStatusCounts)
+                        ? [chartColors.green, chartColors.orange, chartColors.red, chartColors.gray]
+                        : [chartColors.gray],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                },
+                cutout: "62%"
+            }
+        });
+    }
+
+    function createVehicleTypeChart() {
+        const canvas = document.getElementById("vehicleTypeChart");
+        if (!canvas) {
+            return;
+        }
+
+        new Chart(canvas, {
+            type: "bar",
+            data: {
+                labels: vehicleTypeLabels,
+                datasets: [{
+                    label: "Số phương tiện",
+                    data: vehicleTypeCounts,
+                    backgroundColor: [
+                        chartColors.red,
+                        chartColors.orange,
+                        chartColors.blue,
+                        chartColors.green
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        createFeeTrendChart();
+        createFeeStatusChart();
+        createVehicleTypeChart();
+    });
+</script>
 </body>
 </html>

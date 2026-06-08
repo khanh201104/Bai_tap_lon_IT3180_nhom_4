@@ -235,6 +235,19 @@ public class FeeController {
 
         return "redirect:/fees";
     }
+    @PostMapping("/generate/parking")
+    public String generateParkingMonthlyPayments(Model model) {
+        try {
+            feePaymentService.generateParkingMonthlyPayments();
+        } catch (IllegalArgumentException e) {
+            loadFeePage(model, null);
+            model.addAttribute("feePayment", new FeePaymentRequest());
+            model.addAttribute("feePaymentActionError", e.getMessage());
+            return "fee/list";
+        }
+
+        return "redirect:/fees";
+    }
 
     private void loadFeePage(Model model, String keyword) {
         List<FeePaymentResponse> payments;

@@ -14,6 +14,9 @@ import com.bluemoon.apartment.repository.FeePaymentRepository;
 import com.bluemoon.apartment.repository.FeeTypeRepository;
 import com.bluemoon.apartment.repository.HouseholdRepository;
 import com.bluemoon.apartment.service.FeePaymentService;
+import com.bluemoon.apartment.constant.VehicleStatus;
+import com.bluemoon.apartment.entity.Vehicle;
+import com.bluemoon.apartment.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,7 @@ public class FeePaymentServiceImpl implements FeePaymentService {
     private final FeeTypeRepository feeTypeRepository;
     private final HouseholdRepository householdRepository;
     private final FeePaymentMapper feePaymentMapper;
+    private final VehicleRepository vehicleRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -179,18 +183,20 @@ public class FeePaymentServiceImpl implements FeePaymentService {
     public void generateMonthlyPayments() {
         LocalDate now = LocalDate.now();
         YearMonth currentMonth = YearMonth.from(now);
-
         String period = currentMonth.format(DateTimeFormatter.ofPattern("MM/yyyy"));
         LocalDate dueDate = currentMonth.atEndOfMonth();
 
         List<FeeType> monthlyFeeTypes = feeTypeRepository.findByFeeGroupAndActiveTrue(FeeGroup.ANNUAL)
                 .stream()
                 .filter(feeType -> feeType.getCycleType() == FeeCycleType.MONTHLY)
+                .filter(feeType -> !feeType.getName().equalsIgnoreCase("Phí gửi xe"))
                 .toList();
 
         List<Household> households = householdRepository.findAll();
 
         generatePeriodicPayments(monthlyFeeTypes, households, period, dueDate);
+
+        generateParkingMonthlyPayments();
     }
 
     @Override
@@ -271,5 +277,80 @@ public class FeePaymentServiceImpl implements FeePaymentService {
         }
 
         throw new IllegalArgumentException("Cách tính phí không hợp lệ");
+    }
+    @Override
+    @Transactional
+    public void generateParkingMonthlyPayments() {
+        LocalDate now = LocalDate.now();
+        YearMonth currentMonth = YearMonth.from(now);
+        String period = currentMonth.format(DateTimeFormatter.ofPattern("MM/yyyy"));
+        LocalDate dueDate = currentMonth.atEndOfMonth();
+
+        FeeType parkingFeeType = getOrCreateParkingFeeType();
+
+        List<Household> households = householdRepository.findAll();
+
+        for (Household household : households) {
+            List<Vehicle> activeVehicles = vehicleRepository.findByHousehold_IdAndStatus(
+                    household.getId(),
+                    VehicleStatus.ACTIVE
+            );
+
+            if (activeVehicles.isEmpty()) {
+                continue;
+            }
+
+            boolean existed = feePaymentRepository.existsByHousehold_IdAndFeeType_IdAndPeriod(
+                    household.getId(),
+                    parkingFeeType.getId(),
+                    period
+            );
+
+            if (existed) {
+                continue;
+            }
+
+            BigDecimal amount = activeVehicles.stream()
+                    .filter(vehicle -> vehicle.getVehicleType() != null)
+                    .map(vehicle -> BigDecimal.valueOf(vehicle.getVehicleType().getMonthlyFee()))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            FeePayment feePayment = FeePayment.builder()
+                    .household(household)
+                    .feeType(parkingFeeType)
+                    .period(period)
+                    .amount(amount)
+                    .dueDate(dueDate)
+                    .paidDate(null)
+                    .status(PaymentStatus.UNPAID)
+                    .note("Phiếu thu phí gửi xe tự sinh tháng " + period
+                            + " (" + activeVehicles.size() + " phương tiện)")
+                    .build();
+
+            feePaymentRepository.save(feePayment);
+        }
+    }
+
+    private FeeType getOrCreateParkingFeeType() {
+        final String parkingFeeName = "Phí gửi xe";
+
+        return feeTypeRepository.findByNameIgnoreCase(parkingFeeName)
+                .orElseGet(() -> {
+                    FeeType feeType = FeeType.builder()
+                            .name(parkingFeeName)
+                            .description("Loại phí dùng để tự sinh phí gửi xe hằng tháng theo phương tiện đang gửi")
+                            .feeGroup(FeeGroup.ANNUAL)
+                            .cycleType(FeeCycleType.MONTHLY)
+                            .calculationType(FeeCalculationType.MANUAL)
+                            .unitPrice(BigDecimal.ZERO)
+                            .active(true)
+                            .build();
+
+                    return feeTypeRepository.save(feeType);
+                });
     }
 }
