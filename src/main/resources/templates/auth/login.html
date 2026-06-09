@@ -270,9 +270,13 @@
                 <h2>Đăng nhập</h2>
                 <p>Nhập thông tin để truy cập hệ thống quản lý chung cư Bluemoon.</p>
             </div>
-
-            <!-- Hiện tại chưa bật bảo mật thật, nên submit tạm sang dashboard -->
-            <form th:action="@{/dashboard}" method="get">
+            <div class="login-note" th:if="${param.error}">
+                Tên đăng nhập hoặc mật khẩu không đúng.
+            </div>
+            <div class="login-note" th:if="${param.logout}">
+                Đăng xuất thành công.
+            </div>
+            <form th:action="@{/login}" method="post">
                 <div class="login-form-group">
                     <label for="username">Tên đăng nhập</label>
                     <input id="username"

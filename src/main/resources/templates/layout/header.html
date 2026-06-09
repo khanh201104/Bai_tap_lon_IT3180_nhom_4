@@ -7,10 +7,16 @@
     <div class="topbar-right">
         <div class="topbar-date" id="currentDateText"></div>
 
-        <div class="admin-pill">
+        <a th:href="@{/change-password}" class="admin-pill" style="text-decoration: none;">
             <span class="admin-status"></span>
             <span>Admin</span>
-        </div>
+        </a>
+
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="admin-pill" style="border: none; cursor: pointer;">
+                Đăng xuất
+            </button>
+        </form>
     </div>
 
     <script>
