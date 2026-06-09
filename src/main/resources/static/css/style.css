@@ -1233,3 +1233,35 @@ body {
     color: #b30000;
     font-weight: 700;
 }
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 24px !important;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sortable-header:hover {
+    background: #fff3f3 !important;
+    color: #b30000;
+}
+
+.sortable-header::after {
+    content: "↕";
+    position: absolute;
+    right: 8px;
+    color: #999;
+    font-size: 12px;
+}
+
+.sortable-header.sort-asc::after {
+    content: "↑";
+    color: #b30000;
+    font-weight: 800;
+}
+
+.sortable-header.sort-desc::after {
+    content: "↓";
+    color: #b30000;
+    font-weight: 800;
+}
