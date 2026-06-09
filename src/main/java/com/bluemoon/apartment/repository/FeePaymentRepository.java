@@ -25,4 +25,6 @@ public interface FeePaymentRepository extends JpaRepository<FeePayment, Long> {
     List<FeePayment> findByPeriod(String period);
 
     List<FeePayment> findByFeeType_Id(Long feeTypeId);
+
+    void deleteByHousehold_Id(Long householdId);
 }

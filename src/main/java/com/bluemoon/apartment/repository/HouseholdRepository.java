@@ -11,6 +11,8 @@ public interface HouseholdRepository extends JpaRepository<Household, Long> {
 
     boolean existsByHouseholdCodeAndIdNot(String householdCode, Long id);
 
+    boolean existsByHeadResident_Id(Long residentId);
+
     List<Household> findByHouseholdCodeContainingIgnoreCaseOrApartmentNumberContainingIgnoreCaseOrHeadResidentFullNameContainingIgnoreCase(
             String householdCode,
             String apartmentNumber,

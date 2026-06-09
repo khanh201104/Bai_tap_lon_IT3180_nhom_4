@@ -14,6 +14,8 @@ import com.bluemoon.apartment.service.HouseholdService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.bluemoon.apartment.repository.FeePaymentRepository;
+import com.bluemoon.apartment.repository.VehicleRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -27,6 +29,9 @@ public class HouseholdServiceImpl implements HouseholdService {
     private final HouseholdMemberRepository householdMemberRepository;
     private final ResidentRepository residentRepository;
     private final HouseholdMapper householdMapper;
+    private final FeePaymentRepository feePaymentRepository;
+    private final VehicleRepository vehicleRepository;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -127,6 +132,10 @@ public class HouseholdServiceImpl implements HouseholdService {
     public void delete(Long id) {
         Household household = householdRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hộ khẩu"));
+
+        feePaymentRepository.deleteByHousehold_Id(id);
+        vehicleRepository.deleteByHousehold_Id(id);
+        householdMemberRepository.deleteByHousehold_Id(id);
 
         householdRepository.delete(household);
     }

@@ -15,5 +15,5 @@ public interface HouseholdMemberRepository extends JpaRepository<HouseholdMember
 
     boolean existsByResident_IdAndHousehold_IdNot(Long residentId, Long householdId);
 
-    void deleteByHousehold_IdAndId(Long householdId, Long id);
+    void deleteByHousehold_Id(Long householdId);
 }

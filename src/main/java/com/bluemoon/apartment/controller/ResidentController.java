@@ -133,9 +133,16 @@ public class ResidentController {
     }
 
     @PostMapping("/{id}/delete")
-    public String deleteResident(@PathVariable Long id) {
-        residentService.deleteResident(id);
-        return "redirect:/residents";
+    public String deleteResident(@PathVariable Long id, Model model) {
+        try {
+            residentService.deleteResident(id);
+            return "redirect:/residents";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("residents", residentService.getAllResidents());
+            model.addAttribute("resident", new ResidentRequest());
+            model.addAttribute("deleteErrorMessage", e.getMessage());
+            return "resident/list";
+        }
     }
 
 }

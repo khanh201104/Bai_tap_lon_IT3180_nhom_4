@@ -15,7 +15,7 @@
     <main class="content">
         <div class="header-actions">
             <h1>Quản lý hộ khẩu</h1>
-
+            <div class="page-alert-error" th:if="${deleteErrorMessage}" th:text="${deleteErrorMessage}"></div>
             <button type="button"
                     class="btn btn-primary"
                     data-modal-id="household-create-modal"

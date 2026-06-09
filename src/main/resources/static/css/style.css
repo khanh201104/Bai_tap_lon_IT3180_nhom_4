@@ -1224,3 +1224,12 @@ body {
 .topbar p {
     color: #ffe0e0 !important;
 }
+.page-alert-error {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #fff3f3;
+    border: 1px solid #ffb3b3;
+    color: #b30000;
+    font-weight: 700;
+}

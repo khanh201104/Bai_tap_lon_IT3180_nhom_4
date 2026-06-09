@@ -10,4 +10,6 @@ import java.util.List;
 public interface TemporaryResidenceRepository extends JpaRepository<TemporaryResidence, Long> {
 
     List<TemporaryResidence> findByResidentFullNameContainingIgnoreCase(String fullName);
+
+    boolean existsByResident_Id(Long residentId);
 }

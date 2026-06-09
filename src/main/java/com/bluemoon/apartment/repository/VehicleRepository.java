@@ -28,4 +28,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByHouseholdIdAndVehicleType(Long householdId, VehicleType vehicleType);
 
     List<Vehicle> findByHousehold_IdAndStatus(Long householdId, VehicleStatus status);
+
+    void deleteByHousehold_Id(Long householdId);
 }

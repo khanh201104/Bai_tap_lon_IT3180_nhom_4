@@ -99,10 +99,17 @@ public class HouseholdController {
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id) {
-        householdService.delete(id);
-
-        return "redirect:/households";
+    public String delete(@PathVariable Long id, Model model) {
+        try {
+            householdService.delete(id);
+            return "redirect:/households";
+        } catch (IllegalArgumentException e) {
+            loadHouseholdList(model, null);
+            model.addAttribute("household", new HouseholdRequest());
+            model.addAttribute("memberRequest", new HouseholdMemberRequest());
+            model.addAttribute("deleteErrorMessage", e.getMessage());
+            return "household/list";
+        }
     }
 
     @PostMapping("/{householdId}/members")
