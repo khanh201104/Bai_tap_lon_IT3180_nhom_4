@@ -38,6 +38,15 @@
             padding: 10px 16px;
             font-weight: 700;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-badge img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
         }
 
         .dashboard-grid {
@@ -73,6 +82,41 @@
             height: calc(100% - 36px);
             background: #b30000;
             border-radius: 0 999px 999px 0;
+        }
+
+        .stat-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .stat-image {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: #fff3f3;
+            border: 1px solid #ffd2d2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: 0.22s ease;
+        }
+
+        .stat-image img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .stat-card:hover .stat-image {
+            transform: translateY(-2px) scale(1.04);
+            background: #ffffff;
+            border-color: #ffb3b3;
+            box-shadow: 0 8px 18px rgba(179, 0, 0, 0.12);
         }
 
         .stat-label {
@@ -212,6 +256,25 @@
             transform: translateY(-2px);
         }
 
+        .quick-link-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quick-link-img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            flex-shrink: 0;
+            transition: 0.22s ease;
+        }
+
+        .quick-link:hover .quick-link-img {
+            transform: translateX(2px) scale(1.06);
+            filter: brightness(0) invert(1);
+        }
+
         .quick-link-title {
             font-weight: 700;
             display: block;
@@ -290,6 +353,25 @@
             .panel-note {
                 white-space: normal;
             }
+
+            .stat-card-top {
+                align-items: center;
+            }
+
+            .stat-image {
+                width: 38px;
+                height: 38px;
+            }
+
+            .stat-image img {
+                width: 22px;
+                height: 22px;
+            }
+
+            .quick-link-img {
+                width: 24px;
+                height: 24px;
+            }
         }
     </style>
 </head>
@@ -310,25 +392,44 @@
             </div>
 
             <div class="hero-badge">
-                Bluemoon Apartment
+                <img th:src="@{/images/icons/dashboard.svg}" alt="">
+                <span>Bluemoon Apartment</span>
             </div>
         </section>
 
         <section class="dashboard-grid">
             <a th:href="@{/households}" class="stat-card">
-                <div class="stat-label">Tổng số hộ khẩu</div>
+                <div class="stat-card-top">
+                    <div class="stat-label">Tổng số hộ khẩu</div>
+                    <div class="stat-image">
+                        <img th:src="@{/images/icons/household.svg}" alt="">
+                    </div>
+                </div>
+
                 <div class="stat-value" th:text="${householdCount}">0</div>
                 <div class="stat-sub">Bấm để xem quản lý hộ khẩu</div>
             </a>
 
             <a th:href="@{/residents}" class="stat-card">
-                <div class="stat-label">Tổng nhân khẩu</div>
+                <div class="stat-card-top">
+                    <div class="stat-label">Tổng nhân khẩu</div>
+                    <div class="stat-image">
+                        <img th:src="@{/images/icons/resident.svg}" alt="">
+                    </div>
+                </div>
+
                 <div class="stat-value" th:text="${residentCount}">0</div>
                 <div class="stat-sub">Bấm để xem danh sách cư dân</div>
             </a>
 
             <a th:href="@{/vehicles}" class="stat-card">
-                <div class="stat-label">Phương tiện đang gửi</div>
+                <div class="stat-card-top">
+                    <div class="stat-label">Phương tiện đang gửi</div>
+                    <div class="stat-image">
+                        <img th:src="@{/images/icons/vehicle.svg}" alt="">
+                    </div>
+                </div>
+
                 <div class="stat-value" th:text="${activeVehicleCount}">0</div>
                 <div class="stat-sub">
                     Tổng phương tiện:
@@ -337,7 +438,13 @@
             </a>
 
             <a th:href="@{/temporary}" class="stat-card">
-                <div class="stat-label">Tạm trú / tạm vắng</div>
+                <div class="stat-card-top">
+                    <div class="stat-label">Tạm trú / tạm vắng</div>
+                    <div class="stat-image">
+                        <img th:src="@{/images/icons/temporary.svg}" alt="">
+                    </div>
+                </div>
+
                 <div class="stat-value" th:text="${temporaryCount}">0</div>
                 <div class="stat-sub">Bấm để xem hồ sơ tạm trú</div>
             </a>
@@ -385,42 +492,67 @@
 
                 <div class="quick-links">
                     <a th:href="@{/residents}" class="quick-link">
-                        <div>
-                            <span class="quick-link-title">Quản lý nhân khẩu</span>
-                            <span class="quick-link-desc">Thêm, sửa, xóa cư dân</span>
+                        <div class="quick-link-content">
+                            <img class="quick-link-img" th:src="@{/images/icons/resident.svg}" alt="">
+
+                            <div>
+                                <span class="quick-link-title">Quản lý nhân khẩu</span>
+                                <span class="quick-link-desc">Thêm, sửa, xóa cư dân</span>
+                            </div>
                         </div>
+
                         <span class="quick-link-arrow">›</span>
                     </a>
 
                     <a th:href="@{/households}" class="quick-link">
-                        <div>
-                            <span class="quick-link-title">Quản lý hộ khẩu</span>
-                            <span class="quick-link-desc">Căn hộ và chủ hộ</span>
+                        <div class="quick-link-content">
+                            <img class="quick-link-img" th:src="@{/images/icons/household.svg}" alt="">
+
+                            <div>
+                                <span class="quick-link-title">Quản lý hộ khẩu</span>
+                                <span class="quick-link-desc">Căn hộ và chủ hộ</span>
+                            </div>
                         </div>
+
                         <span class="quick-link-arrow">›</span>
                     </a>
 
                     <a th:href="@{/fees}" class="quick-link">
-                        <div>
-                            <span class="quick-link-title">Quản lý khoản phí</span>
-                            <span class="quick-link-desc">Phiếu thu và loại phí</span>
+                        <div class="quick-link-content">
+                            <img class="quick-link-img" th:src="@{/images/icons/fee.svg}" alt="">
+
+                            <div>
+                                <span class="quick-link-title">Quản lý khoản phí</span>
+                                <span class="quick-link-desc">Phiếu thu và loại phí</span>
+                            </div>
                         </div>
+
                         <span class="quick-link-arrow">›</span>
                     </a>
 
                     <a th:href="@{/vehicles}" class="quick-link">
-                        <div>
-                            <span class="quick-link-title">Quản lý phương tiện</span>
-                            <span class="quick-link-desc">Xe máy, ô tô, xe điện</span>
+                        <div class="quick-link-content">
+                            <img class="quick-link-img" th:src="@{/images/icons/vehicle.svg}" alt="">
+
+                            <div>
+                                <span class="quick-link-title">Quản lý phương tiện</span>
+                                <span class="quick-link-desc">Xe máy, ô tô, xe điện</span>
+                            </div>
                         </div>
+
                         <span class="quick-link-arrow">›</span>
                     </a>
 
                     <a th:href="@{/temporary}" class="quick-link">
-                        <div>
-                            <span class="quick-link-title">Tạm trú / tạm vắng</span>
-                            <span class="quick-link-desc">Theo dõi cư trú tạm thời</span>
+                        <div class="quick-link-content">
+                            <img class="quick-link-img" th:src="@{/images/icons/temporary.svg}" alt="">
+
+                            <div>
+                                <span class="quick-link-title">Tạm trú / tạm vắng</span>
+                                <span class="quick-link-desc">Theo dõi cư trú tạm thời</span>
+                            </div>
                         </div>
+
                         <span class="quick-link-arrow">›</span>
                     </a>
                 </div>

@@ -1265,3 +1265,191 @@ body {
     color: #b30000;
     font-weight: 800;
 }
+/* ================= LOGIN + DASHBOARD ASSETS ================= */
+
+/* Login background pattern */
+.login-left {
+    background-image:
+            linear-gradient(135deg, rgba(179, 0, 0, 0.92), rgba(114, 0, 0, 0.96)),
+            url("../images/login/login-pattern.svg");
+    background-size: cover;
+    background-position: center;
+}
+
+/* Login building illustration */
+.login-illustration {
+    position: relative;
+    z-index: 1;
+    margin-top: 38px;
+    max-width: 520px;
+}
+
+.login-illustration img {
+    width: 100%;
+    max-height: 280px;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.22));
+    animation: loginImageFloat 4s ease-in-out infinite;
+}
+
+@keyframes loginImageFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Dashboard stat card icons */
+.stat-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.stat-image {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #fff3f3;
+    border: 1px solid #ffd2d2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition:
+            transform 0.22s ease,
+            background 0.22s ease,
+            border-color 0.22s ease,
+            box-shadow 0.22s ease;
+}
+
+.stat-image img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
+}
+
+.stat-card:hover .stat-image {
+    transform: translateY(-2px) scale(1.04);
+    background: #ffffff;
+    border-color: #ffb3b3;
+    box-shadow: 0 8px 18px rgba(179, 0, 0, 0.12);
+}
+
+/* Quick link icons */
+.quick-link-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.quick-link-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+    transition:
+            transform 0.22s ease,
+            filter 0.22s ease;
+}
+
+.quick-link:hover .quick-link-img {
+    transform: translateX(2px) scale(1.06);
+    filter: brightness(0) invert(1);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .login-illustration {
+        max-width: 420px;
+        margin-top: 28px;
+    }
+
+    .login-illustration img {
+        max-height: 220px;
+    }
+}
+
+@media (max-width: 600px) {
+    .login-illustration {
+        display: none;
+    }
+
+    .stat-card-top {
+        align-items: center;
+    }
+
+    .stat-image {
+        width: 38px;
+        height: 38px;
+    }
+
+    .stat-image img {
+        width: 22px;
+        height: 22px;
+    }
+
+    .quick-link-img {
+        width: 24px;
+        height: 24px;
+    }
+}
+/* ================= LOGIN FULLSCREEN BACKGROUND ================= */
+
+.login-page {
+    min-height: 100vh;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    background:
+            linear-gradient(135deg, rgba(80, 0, 0, 0.72), rgba(20, 0, 0, 0.56)),
+            url("../images/login/login-bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.login-bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+            radial-gradient(circle at 18% 18%, rgba(179, 0, 0, 0.42), transparent 34%),
+            linear-gradient(90deg, rgba(120, 0, 0, 0.62), rgba(255, 255, 255, 0.08));
+    pointer-events: none;
+}
+
+.login-container {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+}
+
+
+.login-left {
+    position: relative;
+    z-index: 2;
+    background: rgba(150, 0, 0, 0.52) !important;
+    backdrop-filter: blur(2px);
+}
+
+
+.login-right {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+
+.login-illustration {
+    display: none;
+}

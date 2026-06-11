@@ -1,24 +1,40 @@
 <!DOCTYPE html>
+
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Đăng nhập - Bluemoon</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 
+    ```
     <style>
         body {
             min-height: 100vh;
             margin: 0;
-            background:
-                    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 32%),
-                    linear-gradient(135deg, #b30000 0%, #990000 48%, #720000 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-family: Arial, sans-serif;
+            overflow: hidden;
+            background:
+                    linear-gradient(135deg, rgba(80, 0, 0, 0.72), rgba(18, 0, 0, 0.62)),
+                    url("/images/login/login-bg.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .login-bg-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                    radial-gradient(circle at 15% 10%, rgba(179, 0, 0, 0.46), transparent 34%),
+                    radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.13), transparent 30%),
+                    linear-gradient(90deg, rgba(80, 0, 0, 0.58), rgba(255, 255, 255, 0.08));
+            pointer-events: none;
         }
 
         .login-page {
+            position: relative;
+            z-index: 2;
             width: 100%;
             min-height: 100vh;
             display: grid;
@@ -49,8 +65,8 @@
         .login-left::after {
             content: "";
             position: absolute;
-            width: 240px;
-            height: 240px;
+            width: 250px;
+            height: 250px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.08);
             bottom: -80px;
@@ -67,17 +83,19 @@
         }
 
         .login-logo {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
+            width: 52px;
+            height: 52px;
+            border-radius: 17px;
             background: white;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
         }
 
         .login-brand-text strong {
             display: block;
-            font-size: 24px;
+            color: #ffffff;
+            font-size: 25px;
             line-height: 1.1;
+            text-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
         }
 
         .login-brand-text span {
@@ -85,19 +103,27 @@
             margin-top: 5px;
             color: #ffe0e0;
             font-size: 13px;
+            text-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
         }
 
         .login-title {
             position: relative;
             z-index: 1;
-            max-width: 620px;
+            max-width: 650px;
+            padding: 26px 28px;
+            border-radius: 26px;
+            background: rgba(100, 0, 0, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 22px 48px rgba(0, 0, 0, 0.18);
         }
 
         .login-title h1 {
             color: white;
-            font-size: 44px;
+            font-size: 46px;
             line-height: 1.16;
             margin: 0 0 18px;
+            text-shadow: 0 6px 22px rgba(0, 0, 0, 0.34);
         }
 
         .login-title p {
@@ -105,30 +131,36 @@
             font-size: 16px;
             line-height: 1.7;
             margin: 0;
+            text-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
         }
 
         .login-right {
-            background: #ffffff;
+            position: relative;
+            z-index: 2;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 42px;
-            border-radius: 34px 0 0 34px;
-            box-shadow: -18px 0 45px rgba(0, 0, 0, 0.12);
         }
 
         .login-card {
             width: 100%;
             max-width: 430px;
+            padding: 42px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
         }
 
         .login-card-header {
-            margin-bottom: 28px;
+            margin-bottom: 26px;
         }
 
         .login-card-header h2 {
             color: #b30000;
-            font-size: 30px;
+            font-size: 32px;
             margin: 0 0 8px;
         }
 
@@ -137,6 +169,17 @@
             margin: 0;
             font-size: 14px;
             line-height: 1.6;
+        }
+
+        .login-note {
+            margin-bottom: 18px;
+            padding: 13px 14px;
+            border-radius: 12px;
+            background: #fff7f7;
+            border: 1px solid #ffd2d2;
+            color: #8f0000;
+            font-size: 13px;
+            line-height: 1.55;
         }
 
         .login-form-group {
@@ -153,17 +196,20 @@
 
         .login-form-group input {
             width: 100%;
+            box-sizing: border-box;
             padding: 13px 14px;
             border: 1px solid #ddd;
             border-radius: 12px;
             outline: none;
             font-size: 15px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            background: rgba(255, 255, 255, 0.92);
         }
 
         .login-form-group input:focus {
             border-color: #b30000;
             box-shadow: 0 0 0 4px rgba(179, 0, 0, 0.08);
+            background: #ffffff;
         }
 
         .login-options {
@@ -171,7 +217,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            margin: 4px 0 22px;
+            margin: 4px 0 24px;
             color: #666;
             font-size: 14px;
         }
@@ -181,6 +227,10 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
+        }
+
+        .login-options input {
+            accent-color: #b30000;
         }
 
         .login-options a {
@@ -203,33 +253,30 @@
             font-size: 16px;
             font-weight: 800;
             cursor: pointer;
-            box-shadow: 0 12px 24px rgba(179, 0, 0, 0.22);
+            box-shadow: 0 14px 30px rgba(179, 0, 0, 0.28);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .login-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 16px 30px rgba(179, 0, 0, 0.3);
+            box-shadow: 0 18px 36px rgba(179, 0, 0, 0.36);
         }
 
-        .login-note {
-            margin-top: 18px;
-            padding: 13px 14px;
-            border-radius: 12px;
-            background: #fff7f7;
-            border: 1px solid #ffd2d2;
-            color: #8f0000;
-            font-size: 13px;
-            line-height: 1.55;
-        }
+        @media (max-width: 1000px) {
+            body {
+                overflow-y: auto;
+            }
 
-        @media (max-width: 900px) {
             .login-page {
                 grid-template-columns: 1fr;
             }
 
             .login-left {
-                padding: 44px 28px;
+                padding: 44px 28px 20px;
+            }
+
+            .login-title {
+                max-width: none;
             }
 
             .login-title h1 {
@@ -237,19 +284,60 @@
             }
 
             .login-right {
-                border-radius: 28px 28px 0 0;
-                padding: 34px 24px;
+                padding: 24px 24px 42px;
+            }
+
+            .login-card {
+                max-width: 520px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .login-left {
+                padding: 30px 18px 14px;
+            }
+
+            .login-brand {
+                margin-bottom: 22px;
+            }
+
+            .login-title {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .login-title h1 {
+                font-size: 28px;
+            }
+
+            .login-right {
+                padding: 18px;
+            }
+
+            .login-card {
+                padding: 28px 22px;
+                border-radius: 22px;
+            }
+
+            .login-options {
+                align-items: flex-start;
+                flex-direction: column;
             }
         }
     </style>
+    ```
+
 </head>
 
 <body>
+<div class="login-bg-overlay"></div>
+
 <div class="login-page">
     <section class="login-left">
         <div class="login-brand">
             <div class="login-logo"></div>
 
+            ```
             <div class="login-brand-text">
                 <strong>Bluemoon</strong>
                 <span>Apartment Management</span>
@@ -257,7 +345,7 @@
         </div>
 
         <div class="login-title">
-            <h1>Quản lý chung cư gọn gàng, trực quan và dễ sử dụng</h1>
+            <h1>Quản lý chung cư</h1>
             <p>
                 IT3180 - Nhóm 4.
             </p>
@@ -270,12 +358,15 @@
                 <h2>Đăng nhập</h2>
                 <p>Nhập thông tin để truy cập hệ thống quản lý chung cư Bluemoon.</p>
             </div>
+
             <div class="login-note" th:if="${param.error}">
                 Tên đăng nhập hoặc mật khẩu không đúng.
             </div>
+
             <div class="login-note" th:if="${param.logout}">
                 Đăng xuất thành công.
             </div>
+
             <form th:action="@{/login}" method="post">
                 <div class="login-form-group">
                     <label for="username">Tên đăng nhập</label>
@@ -310,6 +401,8 @@
             </form>
         </div>
     </section>
+    ```
+
 </div>
 </body>
 </html>
