@@ -1465,3 +1465,101 @@ body {
     display: block;
     filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.38));
 }
+.footer {
+    position: relative;
+    height: 120px;
+    background: linear-gradient(
+            135deg,
+            #b30000,
+            #7a0000
+    );
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+
+    margin-top: auto;
+}
+
+
+/* ảnh chìm */
+.footer {
+    position: relative;
+    height: 120px;
+    background: linear-gradient(
+            135deg,
+            #b30000,
+            #7a0000
+    );
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+
+    margin-top: auto;
+}
+
+
+/* ảnh chìm */
+.footer-bg {
+
+    position: absolute;
+
+    bottom: -10px;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    pointer-events: none;
+
+    opacity: 0.12;
+}
+
+
+.footer-bg img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+    filter:
+            brightness(0)
+            invert(1);
+
+}
+
+
+/* chữ nổi trên ảnh */
+.footer-content {
+
+    position: relative;
+
+    z-index: 2;
+
+}
+
+
+.footer-content p {
+
+    margin: 0;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    color: white;
+
+}

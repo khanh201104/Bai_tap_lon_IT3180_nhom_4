@@ -1,10 +1,29 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
+
 <footer th:fragment="footer" class="footer">
-    <p>QUẢN LÝ CHUNG CƯ BLUEMOON - IT3180 Nhóm 4</p>
+
+    <div class="footer-bg">
+        <img th:src="@{/images/footer/footer-building.png}"
+             src="/images/footer/footer-building.png"
+             alt="Bluemoon Building">
+    </div>
+
+
+    <div class="footer-content">
+        <p>
+            QUẢN LÝ CHUNG CƯ BLUEMOON - IT3180 Nhóm 4
+        </p>
+    </div>
+
+
     <script th:src="@{/js/table-sort.js}"></script>
+
 </footer>
+
+
 <script th:src="@{/js/table-sort.js}"></script>
+
 </body>
 </html>
