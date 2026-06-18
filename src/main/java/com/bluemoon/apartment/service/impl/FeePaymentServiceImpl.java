@@ -10,13 +10,11 @@ import com.bluemoon.apartment.entity.FeePayment;
 import com.bluemoon.apartment.entity.FeeType;
 import com.bluemoon.apartment.entity.Household;
 import com.bluemoon.apartment.mapper.FeePaymentMapper;
-import com.bluemoon.apartment.repository.FeePaymentRepository;
-import com.bluemoon.apartment.repository.FeeTypeRepository;
-import com.bluemoon.apartment.repository.HouseholdRepository;
+import com.bluemoon.apartment.repository.*;
 import com.bluemoon.apartment.service.FeePaymentService;
 import com.bluemoon.apartment.constant.VehicleStatus;
 import com.bluemoon.apartment.entity.Vehicle;
-import com.bluemoon.apartment.repository.VehicleRepository;
+import com.bluemoon.apartment.repository.HouseholdRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +35,7 @@ public class FeePaymentServiceImpl implements FeePaymentService {
     private final HouseholdRepository householdRepository;
     private final FeePaymentMapper feePaymentMapper;
     private final VehicleRepository vehicleRepository;
+    private final HouseholdMemberRepository householdMemberRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -265,6 +264,26 @@ public class FeePaymentServiceImpl implements FeePaymentService {
 
             return feeType.getUnitPrice()
                     .multiply(BigDecimal.valueOf(household.getApartmentArea()))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+        if (feeType.getCalculationType() == FeeCalculationType.BY_RESIDENT) {
+
+            int residentCount =
+                    householdMemberRepository
+                            .countMemberByHouseholdId(
+                                    household.getId()
+                            );
+
+
+            if (residentCount <= 0) {
+                throw new IllegalArgumentException(
+                        "Hộ khẩu chưa có nhân khẩu"
+                );
+            }
+
+
+            return feeType.getUnitPrice()
+                    .multiply(BigDecimal.valueOf(residentCount))
                     .setScale(2, RoundingMode.HALF_UP);
         }
 
